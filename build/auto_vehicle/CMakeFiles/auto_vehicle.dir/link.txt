@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../lib/libauto_vehicle.a  CMakeFiles/auto_vehicle.dir/src/auto_vehicle.cpp.o CMakeFiles/auto_vehicle.dir/src/tasks.cpp.o
+/usr/bin/ranlib ../lib/libauto_vehicle.a

@@ -1,0 +1,235 @@
+{
+	"Bayesian" : 1.9075857996759105,
+	"IPAS" : 1.9075857996759105,
+	"Iteration" : 1,
+	"NZIG" : 234,
+	"Training Data" : 4,
+	"Sensor 1" : 41,
+	"Sensor 2" : 61,
+	"Sensor 3" : 62
+}{
+	"Bayesian" : 1.9075857996759584,
+	"IPAS" : 1.907585799675962,
+	"Iteration" : 2,
+	"NZIG" : 243,
+	"Training Data" : 4,
+	"Sensor 1" : 23,
+	"Sensor 2" : 24,
+	"Sensor 3" : 44
+}{
+	"Bayesian" : 1.907585799675946,
+	"IPAS" : 1.907585799675946,
+	"Iteration" : 3,
+	"NZIG" : 238,
+	"Training Data" : 4,
+	"Sensor 1" : 69,
+	"Sensor 2" : 70,
+	"Sensor 3" : 71
+}{
+	"Bayesian" : 1.9075857996759158,
+	"IPAS" : 1.9075857996759158,
+	"Iteration" : 4,
+	"NZIG" : 207,
+	"Training Data" : 5,
+	"Sensor 1" : 95,
+	"Sensor 2" : 115,
+	"Sensor 3" : 135
+}{
+	"Bayesian" : 1.9075857996759638,
+	"IPAS" : 1.9075857996759638,
+	"Iteration" : 5,
+	"NZIG" : 223,
+	"Training Data" : 6,
+	"Sensor 1" : 209,
+	"Sensor 2" : 210,
+	"Sensor 3" : 211
+}{
+	"Bayesian" : 1.9075857996758998,
+	"IPAS" : 1.9075857996759282,
+	"Iteration" : 6,
+	"NZIG" : 234,
+	"Training Data" : 8,
+	"Sensor 1" : 201,
+	"Sensor 2" : 202,
+	"Sensor 3" : 203
+}{
+	"Bayesian" : 1.9075857996759265,
+	"IPAS" : 1.9075857996759265,
+	"Iteration" : 7,
+	"NZIG" : 202,
+	"Training Data" : 10,
+	"Sensor 1" : 255,
+	"Sensor 2" : 275,
+	"Sensor 3" : 295
+}{
+	"Bayesian" : 1.9075857996759371,
+	"IPAS" : 1.9075857996759371,
+	"Iteration" : 8,
+	"NZIG" : 184,
+	"Training Data" : 12,
+	"Sensor 1" : 355,
+	"Sensor 2" : 375,
+	"Sensor 3" : 376
+}{
+	"Bayesian" : 1.9075857996759638,
+	"IPAS" : 1.9075857996759638,
+	"Iteration" : 9,
+	"NZIG" : 203,
+	"Training Data" : 12,
+	"Sensor 1" : 129,
+	"Sensor 2" : 149,
+	"Sensor 3" : 269
+}{
+	"Bayesian" : 1.8212336515761516,
+	"IPAS" : 1.8212336515761516,
+	"Iteration" : 10,
+	"NZIG" : 203,
+	"Training Data" : 13,
+	"Sensor 1" : 175,
+	"Sensor 2" : 26,
+	"Sensor 3" : 46
+}{
+	"Bayesian" : 1.850017700942745,
+	"IPAS" : 1.850017700942745,
+	"Iteration" : 11,
+	"NZIG" : 193,
+	"Training Data" : 14,
+	"Sensor 1" : 272,
+	"Sensor 2" : 28,
+	"Sensor 3" : 271
+}{
+	"Bayesian" : 1.6564618465049339,
+	"IPAS" : 1.6564618465049357,
+	"Iteration" : 12,
+	"NZIG" : 190,
+	"Training Data" : 16,
+	"Sensor 1" : 240,
+	"Sensor 2" : 260,
+	"Sensor 3" : 261
+}{
+	"Bayesian" : 1.7375256671858157,
+	"IPAS" : 1.7375256671858157,
+	"Iteration" : 13,
+	"NZIG" : 202,
+	"Training Data" : 16,
+	"Sensor 1" : 301,
+	"Sensor 2" : 282,
+	"Sensor 3" : 283
+}{
+	"Bayesian" : 1.7924496022095662,
+	"IPAS" : 1.7924496022095644,
+	"Iteration" : 14,
+	"NZIG" : 211,
+	"Training Data" : 16,
+	"Sensor 1" : 244,
+	"Sensor 2" : 224,
+	"Sensor 3" : 243
+}{
+	"Bayesian" : 1.6185204493292771,
+	"IPAS" : 1.6276777971383423,
+	"Iteration" : 15,
+	"NZIG" : 210,
+	"Training Data" : 18,
+	"Sensor 1" : 340,
+	"Sensor 2" : 361,
+	"Sensor 3" : 290
+}{
+	"Bayesian" : 1.5125415996719695,
+	"IPAS" : 1.5125415996719695,
+	"Iteration" : 16,
+	"NZIG" : 197,
+	"Training Data" : 18,
+	"Sensor 1" : 378,
+	"Sensor 2" : 2,
+	"Sensor 3" : 88
+}{
+	"Bayesian" : 1.4549735009387863,
+	"IPAS" : 1.4549735009387872,
+	"Iteration" : 17,
+	"NZIG" : 199,
+	"Training Data" : 21,
+	"Sensor 1" : 234,
+	"Sensor 2" : 236,
+	"Sensor 3" : 253
+}{
+	"Bayesian" : 1.2915137018069522,
+	"IPAS" : 1.318985745234162,
+	"Iteration" : 18,
+	"NZIG" : 190,
+	"Training Data" : 23,
+	"Sensor 1" : 5,
+	"Sensor 2" : 7,
+	"Sensor 3" : 397
+}{
+	"Bayesian" : 1.318985745234162,
+	"IPAS" : 1.318985745234162,
+	"Iteration" : 19,
+	"NZIG" : 187,
+	"Training Data" : 23,
+	"Sensor 1" : 73,
+	"Sensor 2" : 74,
+	"Sensor 3" : 137
+}{
+	"Bayesian" : 1.2352777608438288,
+	"IPAS" : 1.2549044624013526,
+	"Iteration" : 20,
+	"NZIG" : 187,
+	"Training Data" : 25,
+	"Sensor 1" : 265,
+	"Sensor 2" : 285,
+	"Sensor 3" : 20
+}{
+	"Bayesian" : 1.3765538439673426,
+	"IPAS" : 1.3765538439673426,
+	"Iteration" : 21,
+	"NZIG" : 190,
+	"Training Data" : 26,
+	"Sensor 1" : 206,
+	"Sensor 2" : 226,
+	"Sensor 3" : 246
+}{
+	"Bayesian" : 1.5897363999626872,
+	"IPAS" : 1.5897363999626872,
+	"Iteration" : 22,
+	"NZIG" : 202,
+	"Training Data" : 26,
+	"Sensor 1" : 307,
+	"Sensor 2" : 267,
+	"Sensor 3" : 287
+}{
+	"Bayesian" : 1.1136283792778361,
+	"IPAS" : 1.1136283792778361,
+	"Iteration" : 23,
+	"NZIG" : 186,
+	"Training Data" : 28,
+	"Sensor 1" : 304,
+	"Sensor 2" : 305,
+	"Sensor 3" : 320
+}{
+	"Bayesian" : 0.85599124200721421,
+	"IPAS" : 0.85599124200721421,
+	"Iteration" : 24,
+	"NZIG" : 169,
+	"Training Data" : 31,
+	"Sensor 1" : 288,
+	"Sensor 2" : 308,
+	"Sensor 3" : 315
+}{
+	"Bayesian" : 0.69121943693599408,
+	"IPAS" : 0.69121943693599364,
+	"Iteration" : 25,
+	"NZIG" : 148,
+	"Training Data" : 31,
+	"Sensor 1" : 48,
+	"Sensor 2" : 205,
+	"Sensor 3" : 87
+}{
+	"Bayesian" : 0.6519660338209462,
+	"IPAS" : 0.6519660338209462,
+	"Iteration" : 26,
+	"NZIG" : 143,
+	"Training Data" : 31,
+	"Sensor 1" : 96,
+	"Sensor 2" : 138,
+	"Sensor 3" : 200
+}

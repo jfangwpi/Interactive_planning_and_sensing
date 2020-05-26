@@ -1,0 +1,1 @@
+/usr/bin/c++    -std=c++14 -Wall -Wshadow -Wextra -pedantic -Wno-long-long -O3 -DNDEBUG   CMakeFiles/jsontestrunner_exe.dir/main.cpp.o  -o ../../../bin/jsontestrunner_exe  -L/home/jodie/Workspace/ipas_demo/build/lib  -L/usr/local/lib -rdynamic ../../../lib/libjsoncpp.a -Wl,-rpath,/home/jodie/Workspace/ipas_demo/build/lib:/usr/local/lib 

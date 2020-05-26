@@ -1,0 +1,27 @@
+package random_graph_data;
+
+
+struct agent_data
+{
+    int32_t init_pos_;
+    int32_t idx_;
+}
+
+struct agents_data
+{
+    int8_t num_agents_;
+    agent_data agents_[num_agents_];
+}
+    
+struct task_data
+{
+    int64_t target_pos_;
+    int64_t idx_;
+}
+    
+struct tasks_data
+{
+    int64_t num_tasks_;
+    task_data tasks_[num_tasks_];
+}
+    

@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../lib/libgplib.a  CMakeFiles/gplib.dir/src/rbf_kernel.cpp.o CMakeFiles/gplib.dir/src/gaussian_process.cpp.o CMakeFiles/gplib.dir/src/gaussian_process_classification.cpp.o CMakeFiles/gplib.dir/src/log_likelihood_classification.cpp.o
+/usr/bin/ranlib ../lib/libgplib.a

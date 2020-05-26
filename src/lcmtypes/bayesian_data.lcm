@@ -1,0 +1,30 @@
+package bayesian_data;
+
+struct bayesian_flag
+{
+    boolean bayesian_opt_flag;
+}
+
+struct nzig_data
+{
+    int32_t num_nzig_;
+    int64_t nzig_[num_nzig_];
+}
+
+struct probability_data
+{
+    int32_t num_probs_;
+    double probs_[num_probs_];
+}
+
+struct training_pair
+{
+    double training_x_[5];
+    double training_y_;
+}
+
+struct training_data
+{
+    int32_t num_training_;
+    training_pair training_vertex_[num_training_];
+}

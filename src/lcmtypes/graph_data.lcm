@@ -1,0 +1,82 @@
+package graph_data;
+
+
+struct vertex_data
+{   
+    int64_t idx_;
+    double ig_;
+    double p_;
+    boolean isROIs_;
+    boolean isNZIG_;
+    boolean isSamples_;
+}
+
+struct map_data
+{
+    int64_t num_v_;
+    vertex_data vertex_[num_v_];
+}
+
+struct path_data
+{
+    int32_t path_size_;
+    int64_t cell_[path_size_];
+}
+
+struct paths_data
+{
+    int32_t num_path_;
+    path_data path_collection_[num_path_];
+}
+
+struct entropy_trend_data
+{
+    int32_t num_iteration_;
+    double entropy_[num_iteration_];
+}
+
+
+struct range_checked_data
+{
+    int32_t num_iteration_;
+    int64_t range_[num_iteration_];
+}
+
+struct entropy_path_trend_data
+{
+    int32_t agent_idx_;
+    int32_t num_iteration_;
+    double entropy_path_[num_iteration_];
+}
+
+struct entropy_paths_trend_data
+{
+    int32_t num_path_;
+    entropy_path_trend_data entropy_paths_[num_path_];
+}
+
+struct sensors_data
+{
+    int32_t num_sensor_;
+    int64_t sensor_pos_[num_sensor_];
+}
+
+struct local_hspts_data
+{
+    int32_t num_spts_;
+    int64_t hspts_[num_spts_];
+}
+
+struct prediction_data
+{
+    boolean bayesian_opt_flag;
+}
+
+struct bayesian_opt_data
+{
+    boolean bayesian_opt_flag_;
+    int32_t num_sensor_;
+    int64_t sensor_pos_[num_sensor_];
+}
+
+ 

@@ -1,0 +1,19 @@
+package distribution_data;
+
+struct sample
+{
+    double cost;
+    double p;
+}
+
+struct path_dist
+{
+    int32_t num_sample;
+    sample cost_dist[num_sample];
+}
+
+struct paths_dist
+{
+    int32_t num_paths;
+    path_dist dist_path[num_paths];
+}
