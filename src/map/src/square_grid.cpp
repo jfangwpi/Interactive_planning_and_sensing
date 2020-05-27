@@ -35,7 +35,6 @@ SquareGrid::SquareGrid(int32_t row_num, int32_t col_num, double cell_size, int32
             SquareCell *new_cell = new SquareCell(new_id, x, y, OccupancyType::FREE);
             grid_cells_[x][y] = new_cell;
             grid_cells_[x][y]->UpdateCellInfo(num_row_, num_col_, cell_size_, pixel_per_meter_);
-           
             grid_cells_[x][y]->cell_labels_.SetDefaultRegionLabel(default_label);
         }
     }

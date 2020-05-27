@@ -134,7 +134,7 @@ $ make
 ```
 $ gedit ~/.bashrc
 Add the follwing lines to the ~/.bashrc
-$ export LTLSAMPLING=$HOME/Workspace/cbba_sim
+$ export LTLSAMPLING=$HOME/Workspace/ipas
 $ export PYTHONPATH=$LTLSAMPLING/src/lcmtypes/python:$LTLSAMPLING/src/lcmtypes/python/communicate_data:$PYTHONPATH
 ```
 
@@ -146,22 +146,32 @@ Once the editing is completed, run
 $ cd bin
 $ ./test_map
 ```
-Check the result at "/cbba_sim/build/bin", the result is the figure called "result_map.jpg". Example of the result can be: 
+Check the result at "/ipas/build/bin", the result is the figure called "result_map.jpg". Example of the result can be: 
 <img src="/data/result_map.jpg" align="middle" height="500" >
+where the actucal mountain environment is 
+<img src="/data/mountain_map.jpg" align="middle" height="500" >
 
 #### Comments about result
 1. The grey cells are obstacles, orange cells are regions of interest (tasks) and the cell marked by v_i is the initial position of vehicle i.
 
 
-### Task assignment among multiple vehicles by CBBA
+### Decentralized route-planning for multiple vehicles system in known environments
 Once the information of agents, tasks and map is defined, run the following command to visualize the result of task assignment among multiple vehicles by CBBA
 ```
 $ cd bin
-$ ./test_cbba
+$ ./cbba_demo
 ```
-Check the result at "/cbba_sim/build/bin", the result is the figure called "result_cbba.jpg". Example of the result can be: 
-<img src="/data/result_cbba.jpg" align="middle" height="500" >
+Check the result at "/ipas/build/bin", the result is the figure called "result_cbba.jpg". Example of the result can be: 
+<img src="/data/cbba_demo_with_accurate_environment.jpg.jpg" align="middle" height="500" >
 
 #### Comments about result
 1. The feasible path for vehicle i is draw by straight line with corresponding color, i.e., vehicle 1 is required to move to cell 6 first, then move to cell 75 along the blue line.  
 
+### Decentralized route-planning for multiple vehicles system in unknown environment - Interactive Planning and Sensing
+Once the information of agents, tasks and map is defined, run the following command to visualize the result of task assignment among multiple vehicles by CBBA
+```
+$ cd bin
+$ ./ipad_demo
+```
+Check the result at "/ipas/src/deomo", the result is the figure called "result_cbba.jpg". Example of the result can be: 
+<img src="/data/ipas_grid_map.gif" align="middle" height="500" >

@@ -115,7 +115,7 @@ namespace librav{
             std::pair<int64_t,double> MinHotSpot();
 
             /* Bayesian Optimization */
-            std::vector<int64_t> ComputeROIs(TasksSet tasks);
+            std::vector<int64_t> ComputeLocalROIs(TasksSet tasks);
     };
 
     namespace IPASMeasurement{
@@ -139,6 +139,7 @@ namespace librav{
 
         void MergeHSpots(std::shared_ptr<AutoTeam_t<AutoVehicle>> teams);
         void InformationDrivenHSpots(std::shared_ptr<AutoTeam_t<AutoVehicle>> teams);
+
     };
 }
 

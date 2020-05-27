@@ -11,7 +11,7 @@ namespace librav{
     template <class T>
     Vehicle_t<AgentType>::Vehicle_t(T vehicle): 
         vehicle_(vehicle),vehicle_idx_(vehicle.idx_),vehicle_pos_(vehicle.pos_), 
-        network_topo_(vehicle.network_topo_),vehicle_energy_capacity_(vehicle.energy_capacity_)
+        network_topo_(vehicle.network_topo_),vehicle_energy_capacity_(vehicle.energy_capacity_), vehicle_type_(vehicle.vehicle_type_)
         {   
             for(int64_t ii = 0; ii < network_topo_.size(); ii++){
                 if (ii != vehicle_idx_ && network_topo_(ii) == 1){

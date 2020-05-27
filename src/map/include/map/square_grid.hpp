@@ -101,7 +101,7 @@ namespace librav{
 
     class SquareGrid{
         public:
-            SquareGrid(int32_t row_num, int32_t col_num, double cell_size = 0.1, int32_t pixel_per_meter = 1, int32_t default_label = 0);
+            SquareGrid(int32_t row_num, int32_t col_num, double cell_size = 0.1, int32_t pixel_per_meter = 100, int32_t default_label = 0);
             ~SquareGrid();
 
         friend class SquareCell;

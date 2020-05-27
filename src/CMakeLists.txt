@@ -41,6 +41,7 @@ endif(BUILD_DEMO)
 include_directories(${CMAKE_SOURCE_DIR}/src/third_party/)
 
 
+
 add_subdirectory(vis)
 add_subdirectory(graph)
 add_subdirectory(utility)
@@ -48,12 +49,13 @@ add_subdirectory(ltl)
 add_subdirectory(map)
 add_subdirectory(cbba)
 add_subdirectory(cbta)
-add_subdirectory(cbga)
+#add_subdirectory(cbga)
 add_subdirectory(jsoncpp)
 add_subdirectory(gplib)
 add_subdirectory(auto_vehicle)
 add_subdirectory(task_assignment)
 add_subdirectory(vehicle)
+add_subdirectory(demo)
 
 
 

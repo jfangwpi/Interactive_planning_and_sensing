@@ -263,13 +263,11 @@ std::shared_ptr<AutoTeam_t<AutoVehicle>> IPASMeasurement::ConstructAutoTeam(){
 		int init_pos = config_reader.GetReal(agent_init_pos, 0);
 		Eigen::MatrixXi comm_net = config_reader.GetVectorBinary(agent_neighbors, Eigen::MatrixXi::Ones(1,num_agents));
 		std::string auto_type = config_reader.GetString(agent_type,"");
-        std::size_t rescue_found = auto_type.find("RESCUE");
-        std::size_t measurement_found = auto_type.find("MEASURE");
         TaskType type;
-        if(rescue_found != std::string::npos){
+        if(auto_type == "RESCUE"){
             type = TaskType::RESCUE;
         }
-        else if (measurement_found != std::string::npos){
+        else if (auto_type == "MEASURE"){
             type = TaskType::MEASURE;
         }else {
             std::cout << "Unknown task type." << std::endl;
@@ -300,6 +298,7 @@ std::shared_ptr<AutoTeam_t<AutoVehicle>> IPASMeasurement::ConstructAutoTeam(std:
             vehicle_group->rescue_team_.push_back(agent);
         }
     }
+
     vehicle_group->num_vehicles_ = vehicle_group->auto_team_.size();
     // std::cout << "The number of vehicle is " << vehicle_group->auto_team_.size() << std::endl;
     vehicle_group->num_tasks_ = vehicle_group->auto_team_.front()->vehicle_.num_tasks_;
@@ -342,6 +341,7 @@ TasksSet IPASMeasurement::ConstructLTLTasks(){
     TasksSet tkSet(tasks);
     return tkSet;
 }
+
 
 
 void AutoVehicle::ComputeLocalHotspots(TasksSet tasks){
@@ -423,7 +423,7 @@ void AutoVehicle::ComputeLocalHotspots(TasksSet tasks){
     }
 }
 
-std::vector<int64_t> AutoVehicle::ComputeROIs(TasksSet tasks){
+std::vector<int64_t> AutoVehicle::ComputeLocalROIs(TasksSet tasks){
     // Decompose the path to each smaller segments
 	std::vector<Path_t<SquareCell*>> paths_;
 	if(!task_path_.empty()){
@@ -441,14 +441,8 @@ std::vector<int64_t> AutoVehicle::ComputeROIs(TasksSet tasks){
 
         // Find the sub-region from the local graph and paths
         std::vector<int64_t> sub_domain = GridGraph::SubRegionFromPaths(paths_,local_grid_,local_graph_);
+        rois_ = sub_domain;
 
-        std::cout << "===========================" <<std::endl;
-        std::cout << "===========================" <<std::endl;
-        std::cout << "The sub_domain for vehicle " << idx_ << " is:";
-        for(auto kk: sub_domain){
-            std::cout << kk << ", ";
-        }
-        std::cout << std::endl;
         // Find the HotSpots
         // Find the set of vertices with none-zero ig
         std::vector<int64_t> vt_none_zero_ig_ = sub_domain;

@@ -258,8 +258,8 @@ void GraphVis::VisSquareGridPath(Path_t<SquareCell *>& path, cv::InputArray _src
 	x = x - (cell_f->bbox_.x.max - cell_f->bbox_.x.min)/8;
 	y = cell_f->position_.y;
 	y = y + (cell_f->bbox_.y.max - cell_f->bbox_.y.min)/8;
-	//FillSquareCellColor(cell_f->bbox_, finish_color_, dst);
-	// VisUtils::FillRectangularArea(dst, cell_f->bbox_, vehicle_color);
+
+	VisUtils::FillRectangularArea(dst, cell_f->bbox_, vehicle_color);
 	// putText(dst, "F" ,Point(x,y), CV_FONT_NORMAL, 1, Scalar(0,0,0),1,1);
 
 	// draw path

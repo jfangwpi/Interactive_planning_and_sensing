@@ -262,7 +262,7 @@ void GraphVisLCM::TransferBayesianInfoLCM(std::shared_ptr<Graph_t<SquareCell *>>
         map_data_.vertex_.push_back(vertex_);
     }
 
-    std::string Graph_data = std::to_string(fig_idx_) + "GraphData";
+    std::string Graph_data = std::to_string(fig_idx_) + "BayesianGraphData";
     lcm.publish(Graph_data, &map_data_);
     fig_idx_++;
 }
