@@ -110,6 +110,7 @@ $ export PYTHONPATH=$LTLSAMPLING/src/lcmtypes/python:$LTLSAMPLING/src/lcmtypes/p
 ### Visualize the map
 Edit the configuration files for agents, tasks and map and true_map. These configuration files are stored at "/cbba_sim/src/config"
 In this example, we created an example of mountain search and rescue. The actucal mountain map is stored at "/data/mountain_map.jpg":
+
 <img src="/data/mountain_map.jpg" align="middle" height="500" >
 
 To generate the grid map corresponding to the actual moutain map, run 
@@ -151,7 +152,7 @@ $ python vis_ipas_lcm.py
 ```
 
 The results at each iteration will be stored at folder "/ipas/src/deomo" automatically. The gif for the whole interactive planning and sensing for the example of mountain search and rescue is: 
-<img src="/data/ipas.gif" align="middle" height="500" >
+<img src="/data/ipas.gif" align="middle" height="500" width = "800">
 
 #### Comments about result
 1. At each frame, two plots are displayed. The left one is the probabilistic occupancy map and the right one is the information gain for each vertex in the map. 
@@ -171,7 +172,8 @@ $ ./infor_driven_demo
 ```
 
 The results at each iteration will be stored at folder "/ipas/src/deomo" automatically. The gif for the information driven approach for the example of mountain search and rescue is: 
-<img src="/data/info_driven.gif" align="middle" height="500" >
+
+<img src="/data/info_driven.gif" align="middle" height="500" width = "800">
 
 #### Comments about result
 1. Much more sensory resources is required compared to the results shown above.
@@ -198,7 +200,7 @@ $ ./infor_driven_demo
 ```
 
 The results at each iteration will be stored at folder "/ipas/src/deomo" automatically. The gif for the interactive planning and sensing with Bayesian optimization for the example of mountain search and rescue is: 
-<img src="/data/ipas_bayesian.gif" align="middle" height="500" >
+<img src="/data/ipas_bayesian.gif" align="middle" height="500" width = "800">
 
 #### Comments about result
 1. Similar convergence rate is required by using Bayesian optimization.
