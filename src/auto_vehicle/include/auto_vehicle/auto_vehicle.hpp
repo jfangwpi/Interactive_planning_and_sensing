@@ -43,6 +43,10 @@ namespace librav{
         std::vector<Eigen::Matrix<double,1,Eigen::Dynamic>> y_history_;
         std::vector<Eigen::Matrix<int,1,Eigen::Dynamic>> z_history_;
         std::vector<Eigen::Matrix<int,1,Eigen::Dynamic>> iteration_neighb_history_;
+
+        // Required by synchronization algorithm
+        std::vector<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> assignment_;
+        std::vector<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> winning_bids_;
     }History;
 
     class AutoVehicle
@@ -51,6 +55,8 @@ namespace librav{
             AutoVehicle(int64_t idx,int64_t pos,int64_t num_v,Eigen::MatrixXi network_topo,TaskType ve_cap,int64_t num_tk);
             // IPAS
             AutoVehicle(int64_t idx,int64_t pos,int64_t num_v,Eigen::MatrixXi network_topo,TaskType ve_cap,int64_t num_tk,int64_t num_ss);
+            // Collaborative 
+            AutoVehicle(int64_t idx,int64_t pos,int64_t num_v,Eigen::MatrixXi network_topo,TaskType ve_cap,int64_t itk, int64_t ctk, int64_t num_ss);
             ~AutoVehicle(){};
 
             int64_t idx_;
@@ -61,6 +67,9 @@ namespace librav{
 
             int64_t num_vehicles_;
             int64_t num_tasks_;
+
+            int64_t num_independent_tasks_;
+            int64_t num_collaborative_tasks_;
 
             /* IPAS */
             int64_t num_sensors_;
@@ -92,6 +101,22 @@ namespace librav{
 
             int64_t cbba_iter_;
 
+            /*** Information required by synchronization algorithm ***/
+            // Required by synchronization algorithm
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> syn_c_;
+            // The set of available dependent tasks
+            std::vector<int> h_avai_de_;
+            // Assignment matrix
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> assignment_matrix_;
+            // Reward matrix 
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> winning_bids_matrix_;
+            // Total waiting time required by the vehicle 
+            double waiting_t_;
+            // Insert position threshold for dependent tasks
+            int last_pos_dependent_;
+
+
+
             /* CBBA Calculation */
             void InitCBBA(int64_t num_tk);
 
@@ -106,6 +131,33 @@ namespace librav{
             void BundleRemove();
             void PathRemove();
 
+            /* Synchronization Algorithm */
+            // Update the syn_c and the optimal insert position 
+            void update_reward_dependent(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph);
+            // Find the available dependent task based on current task path
+            void available_dep_tasks_finder(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph);
+            // Find the desired dependent task from the list of available tasks
+            int desired_dep_task_finder();
+            // Add dependent task into task path
+            void bundle_add_dependent(TasksSet task, const std::shared_ptr<Graph_t<SquareCell*>> graph);
+            // Update the optimal group for the given task
+            void optimal_group_finder(TasksSet task);
+            // Find the vehicles based on the bids
+            std::vector<int> FindVehicleFrombid(TasksSet task, std::vector<double> winners_bid);
+            // Find the winners for the given task
+            std::vector<int> winners_finder(TasksSet task);
+            // Find the number of vehicle 
+            int winners_count(TasksSet task);
+            // Remove outbid dependent task from task path
+            void path_remove_dependent(TasksSet tasks);
+            // Remove outbid dependent task from task bundle
+            void bundle_remove_dependent();
+            // Find the winning bids for the given task
+            std::vector<double> winning_bids_finder(TasksSet task);
+            // Compute the waiting time required by all dependent tasks
+            void UpdateWaitingTime(std::shared_ptr<Graph_t<SquareCell*>> graph, TasksSet tasks);
+
+
 
             /* IPAS */
             void SetLocalMap(std::shared_ptr<SquareGrid> grid);
@@ -116,6 +168,9 @@ namespace librav{
 
             /* Bayesian Optimization */
             std::vector<int64_t> ComputeLocalROIs(TasksSet tasks);
+
+
+
     };
 
     namespace IPASMeasurement{
@@ -139,6 +194,30 @@ namespace librav{
 
         void MergeHSpots(std::shared_ptr<AutoTeam_t<AutoVehicle>> teams);
         void InformationDrivenHSpots(std::shared_ptr<AutoTeam_t<AutoVehicle>> teams);
+
+
+        /*** Functions for Synchronization algorithm ***/
+        // Insert dependent tasks into task bundle/path and update iteration
+        void bundle_add_dependent(TasksList tasks, const std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<Agent>& agents);
+        // Remove dependent tasks from task path/bundle
+        void path_remove_dependent(TasksList tasks, std::vector<Agent>& agents);
+        // Communicate with neighbors
+        void communicate_dependent(std::vector<Agent>& agents, TasksList tasks);
+        // Find the K closest reward based on current reward
+        std::vector<double> KClosestFinder(std::vector<double> ordered_bids, int x, int k, int n);
+        int findCrossOver(std::vector<double> ordered_bids, int low, int high, int x);
+        double maximum_bid_finder(std::vector<double> winning_bids);
+        double minimum_bid_finder(std::vector<double> winning_bids);
+        // Check whether the convergence of synchronization algorithm is achieved
+        bool success_checker_dependent(std::vector<Agent> agents, TasksList tasks);
+        /*** Compute the waiting time required by vehicle ***/
+        double WaitingTimeCalculation(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<Agent>& agents, TasksList tasks);
+        int FindNumAppearance(std::vector<int> list, int target);
+        std::vector<int> FindWinners(std::vector<Agent> agents, int task_idx);
+        // Find the longest path for all dependent tasks
+        double MaximumRewardCalculation(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int> bundle, int init_pos, TasksList tasks);
+        // Compute certain length of path by considerring the waiting time
+        double PathLengthCalculationWithWaiting(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int> bundle, int init_pos, TasksList tasks);
 
     };
 }

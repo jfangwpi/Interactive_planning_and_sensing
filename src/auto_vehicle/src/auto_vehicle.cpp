@@ -28,6 +28,21 @@ AutoVehicle::AutoVehicle(int64_t idx,int64_t pos,int64_t num_v,Eigen::MatrixXi n
     history_hspots_ = {};
 }
 
+AutoVehicle::AutoVehicle(int64_t idx,int64_t pos,int64_t num_v,Eigen::MatrixXi network_topo,TaskType ve_cap,int64_t itk, int64_t ctk, int64_t num_ss):
+    idx_(idx),pos_(pos),num_vehicles_(num_v),vehicle_type_(ve_cap),num_tasks_(itk),num_collaborative_tasks_(ctk),num_sensors_(num_ss)
+{
+    network_topo_ = Eigen::MatrixXi::Ones(1,num_vehicles_);
+    for(size_t ii = 0; ii < num_vehicles_; ii++){
+        network_topo_(ii) = network_topo(ii);
+    }
+    InitCBBA(num_tasks_);
+    local_grid_ = nullptr;
+    local_graph_ = nullptr;
+    hotspots_ = {};
+    nz_ig_zone_ = {};
+    history_hspots_ = {};
+}
+
 void AutoVehicle::SetLocalMap(std::shared_ptr<SquareGrid> grid){
     local_grid_ = grid->DuplicateSquareGrid();
     local_graph_ = GridGraph::BuildGraphFromSquareGrid(local_grid_,false,true);
@@ -55,12 +70,13 @@ void AutoVehicle::InitCBBA(int64_t num_tk){
     cbba_iter_ = 0;
 }
 
+
 void AutoVehicle::UpdateReward(TasksSet tasks){
     // Find the task which have not in the task bundle
     std::vector<int64_t> tk_NotInBunlde = {};
     for(auto& tk_: tasks.tasks_){
         std::vector<int64_t>::iterator it_tk = std::find(task_bundle_.begin(),task_bundle_.end(),tk_.idx_);
-        if(it_tk == task_bundle_.end()){
+        if(it_tk == task_bundle_.end() && vehicle_type_ == tk_.task_type_){
             tk_NotInBunlde.push_back(tk_.idx_);
         }
     }
@@ -894,3 +910,83 @@ void IPASMeasurement::InformationDrivenHSpots(std::shared_ptr<AutoTeam_t<AutoVeh
 
 
 
+// /* Synchronization Task Assignment */
+void AutoVehicle::bundle_add_dependent(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph){
+	bool bundleFull = 0;
+	if(task_bundle_.size() > num_tasks_){
+		bundleFull = 1;
+	}
+
+	last_pos_dependent_ = -1;
+	if (!task_path_.empty()){
+		for (int i = task_path_.size()-1; i >= 0; i--){
+			if(task_path_[i] >= num_tasks_inde_){
+				last_pos_dependent_ = i + 1;
+				break;
+			}
+		}	
+	}
+	while (bundleFull == 0){
+		available_dep_tasks_finder(tasks, graph);
+		int desired_idx = desired_dep_task_finder();
+		if(desired_idx == -1){
+			break;
+		}
+
+		cbba_bundle_.push_back(desired_idx);
+		std::vector<int>::iterator it = cbba_path_.begin();
+		cbba_path_.insert(it+insert_pos_(0, desired_idx), desired_idx);
+		
+		if(cbba_bundle_.size() > max_tasks_){
+			bundleFull = 1;
+		}
+	}
+	
+	/* ========================================= Debug =====================================*/
+	// std::cout << "After inserting all dependent tasks, the optimal sequence is " << std::endl;
+	// for (auto &b: cbba_path_){
+	// 	std::cout << b << ", ";
+	// }
+	// std::cout << std::endl;
+	// std::cout << "Current winning bids matrix is " << std::endl;
+	// std::cout << winning_bids_matrix_ << std::endl;
+	// std::cout << "The assignment matrix is " << std::endl;
+	// std::cout << assignment_matrix_ << std::endl;
+
+	std::vector<int> current_p = cbba_path_;
+	for (int t_idx = 0; t_idx < current_p.size(); t_idx++){
+		cbba_Task& task = tasks.FindTask(current_p[t_idx]);
+		if(task.num_agents_ > 1){
+			std::vector<int> path_copy = cbba_path_;
+			std::vector<int>::iterator it = std::find(cbba_path_.begin(), cbba_path_.end(), task.idx_);
+			int task_length = it - cbba_path_.begin();
+			path_copy.resize(task_length+1);	
+
+			double path_part = syn_benefit - TaskAssignment::PathLengthCalculationBasedType(tasks, graph, path_copy, init_pos_);
+			cbba_reward_(0, task.idx_) = path_part;
+			winning_bids_matrix_(task.idx_, idx_) = path_part;
+
+			optimal_group_finder(task);
+
+			if (assignment_matrix_(task.idx_,idx_) == 0){
+				cbba_path_.erase(std::remove(cbba_path_.begin(), cbba_path_.end(), task.idx_), cbba_path_.end());
+				cbba_bundle_.erase(std::remove(cbba_bundle_.begin(), cbba_bundle_.end(), task.idx_), cbba_bundle_.end());
+			}
+			
+			/*** ======================================== DEBUG =============================== ***/
+			//std::cout << "============================= DEBUG =============================== " << std::endl;
+			// std::cout << "The Result of converging optimal group of vehicle about task " << task.idx_ << " is: " << std::endl;
+			// for (auto &b: cbba_path_){
+			// 	std::cout << b << ", ";
+			// }
+			// std::cout << std::endl;
+			// std::cout << "Now winning bids matrix becomes " << std::endl;
+			// std::cout << winning_bids_matrix_ << std::endl;
+			// std::cout << "The assignment matrix becomes " << std::endl;
+			// std::cout << assignment_matrix_ << std::endl;
+		}
+	}
+
+	history_.assignment_.push_back(assignment_matrix_);
+	history_.winning_bids_.push_back(winning_bids_matrix_);
+}

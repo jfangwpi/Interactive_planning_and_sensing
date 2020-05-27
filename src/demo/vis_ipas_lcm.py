@@ -483,7 +483,7 @@ class map_vis(object):
             plt.xticks(fontsize = fontsize_dis)
             plt.yticks(fontsize = fontsize_dis)
 
-            plt.suptitle("Interactive Planning and Sensing at t = {}".format(self.num_fig), fontsize = fontsize_dis)
+            plt.suptitle("Information Driven Approach at t = {}".format(self.num_fig), fontsize = fontsize_dis)
 
             for sensor in self.sensors_:
                 cv = self.vertex_[sensor]
