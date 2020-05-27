@@ -18,7 +18,7 @@ from graph_data import local_hspts_data
 
 
 fontsize_dis = 50
-style_dis = "split"
+style_dis = "combined"
 
 num_row = 30
 num_col = 30
@@ -244,28 +244,31 @@ class map_vis(object):
         plt.yticks(np.arange(y_min, y_max+1, 10))
 
         # Draw each cell
-        for cell in self.vertex_.values():
-            # plt.text(cell.pos_[1] + 0.25, cell.pos_[0] + 0.25,"{}".format(round(cell.p_,3)), color='black', fontsize=fontsize_dis)
-            if (cell.occupancy_ == "UNKNOWN"):
-                x_region = np.arange(cell.pos_[1], cell.pos_[1] + 2, 1)
-                y_region = cell.pos_[0]
-                plt.fill_between(x_region, y_region, y_region +1, facecolor='gray', interpolate=True)
+        # for cell in self.vertex_.values():
+        #     plt.text(cell.pos_[1] + 0.1, cell.pos_[0] + 0.1,"{}".format(round(cell.p_,3)), color='black', fontweight = 'bold', fontsize=fontsize_dis)
 
-            if (cell.occupancy_ == "INTERESTED"):
-                x_region = np.arange(cell.pos_[1], cell.pos_[1] + 2, 1)
-                y_region = cell.pos_[0]
-                plt.fill_between(x_region, y_region, y_region +1, facecolor='yellow', interpolate=True)
-                
-            if (cell.occupancy_ == "OCCUPIED"):
-                x_region = np.arange(cell.pos_[1], cell.pos_[1] + 2, 1)
-                y_region = cell.pos_[0]
-                plt.fill_between(x_region, y_region, y_region +1, facecolor='black', interpolate=True)
+        # Draw the heat map
+        self.vertex_[0].p_ = 1.0
+        ZZ = np.empty([self.num_col_, self.num_row_])
+        for cell in self.vertex_.values():
+            ZZ[cell.pos_[1],cell.pos_[0]] = cell.p_
+        
+        self.vertex_[0].p_ = 0.0
+
+        # The number here is the num of col and row + 1
+        XX, YY = np.mgrid[0:self.num_col_:31j, 0:self.num_row_:31j]
+        
+        CMAP = plt.get_cmap('binary')
+        plt.pcolormesh(XX,YY,ZZ,cmap=CMAP)
+        cb = plt.colorbar(shrink = 1.0)
+        cb.ax.set_yticklabels(cb.ax.get_yticklabels(), fontsize=50)
 
         # Draw agent position 
         for agent_idx in self.agents_.keys():
             row = (self.num_row_ - self.agents_[agent_idx] // self.num_row_ - 1)
-            col = self.agents_[agent_idx] % self.num_row_
-            plt.text(col + 0.05, row + 0.12,"V {}".format(agent_idx), color='yellow', fontsize=fontsize_dis, fontweight='bold')
+            col = self.agents_[agent_idx] % self.num_row_ 
+            self.vertex_[self.agents_[agent_idx]].p_ = 1.0
+            plt.text(col - 0.1, row + 0.65,"V {}".format(agent_idx), color='yellow', fontsize=fontsize_dis, fontweight='bold')
             x_region = np.arange(col, col + 2, 1)
             y_region = row
             plt.fill_between(x_region, y_region, y_region +1, facecolor='red', interpolate=True)
@@ -274,11 +277,10 @@ class map_vis(object):
         for tsk in self.tasks_.keys():
             row = (self.num_row_ - self.tasks_[tsk] // self.num_row_ - 1)
             col = self.tasks_[tsk] % self.num_row_
-            plt.text(col + 0.55, row + 0.1,"P{}".format(tsk+1), color='black', fontsize=fontsize_dis, fontweight='bold')
+            plt.text(col + 0.55, row + 0.1,"P{}".format(tsk), color='black', fontsize=fontsize_dis, fontweight='bold')
             x_region = np.arange(col, col + 2, 1)
             y_region = row
             plt.fill_between(x_region, y_region, y_region +1, facecolor='yellow', interpolate=True)
-
 
         # Draw path
         if self.path_collection_:
@@ -290,44 +292,44 @@ class map_vis(object):
                     if idx == 4:
                         start_id = path[0]
                         start_vertex = self.vertex_[start_id]
-                        plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]+0.65, 'S1', color='blue', fontsize=fontsize_dis, fontweight='bold')
+                        plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]-0.2, 'S1', color='blue', fontsize=fontsize_dis, fontweight='bold')
                     if idx == 5:
                         start_id = path[0]
                         start_vertex = self.vertex_[start_id]
-                        plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]+0.65, 'S2', color='blue', fontsize=fontsize_dis, fontweight='bold')
+                        plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]-0.2, 'S2', color='blue', fontsize=fontsize_dis, fontweight='bold')
                     if idx == 6:
                         start_id = path[0]
                         start_vertex = self.vertex_[start_id]
-                        plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]+0.65, 'S3', color='blue', fontsize=fontsize_dis, fontweight='bold')
+                        plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]-0.2, 'S3', color='blue', fontsize=fontsize_dis, fontweight='bold')
                     if idx == 7:
                         start_id = path[0]
                         start_vertex = self.vertex_[start_id]
-                        plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]+0.65, 'S4', color='blue', fontsize=fontsize_dis, fontweight='bold')
-            
+                        plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]-0.2, 'S4', color='blue', fontsize=fontsize_dis, fontweight='bold')
+
 
                     # Mark End Cell
                     if idx <= 3:
                         end_id = path[-1]
                         end_vertex = self.vertex_[end_id]
-                        plt.text(end_vertex.pos_[1] + 0.1, end_vertex.pos_[0] + 0.1, 'F', color='green', fontsize=fontsize_dis, fontweight='bold')
+                        plt.text(end_vertex.pos_[1] - 0.1, end_vertex.pos_[0] + 0.25, 'F', color='green', fontsize=fontsize_dis, fontweight='bold')
 
                     # Draw the path
-                    for v_idx in range(len(path) - 1):
-                        v1_id = path[v_idx]
-                        v1 = self.vertex_[v1_id]
-                        v2_id = path[v_idx+1]
-                        v2 = self.vertex_[v2_id]
-                        # plt.text(v1.pos_[1] + 0.25, v1.pos_[0] + 0.25,"{}".format(round(v1.p_,3)), color='black', fontsize=30)
+                for v_idx in range(len(path) - 1):
+                    v1_id = path[v_idx]
+                    v1 = self.vertex_[v1_id]
+                    v2_id = path[v_idx+1]
+                    v2 = self.vertex_[v2_id]
+                    # plt.text(v1.pos_[1] + 0.25, v1.pos_[0] + 0.25,"{}".format(round(v1.p_,3)), color='black', fontsize=30)
 
-                        y = np.linspace(v1.pos_[0] + 0.5, v2.pos_[0] + 0.5, 100)
-                        x = np.linspace(v1.pos_[1] + 0.5, v2.pos_[1] + 0.5, 100)
-                        
-                        if idx <= 3:
-                            plt.plot(x,y,'y-', linewidth=15)
-                        else:
-                            plt.plot(x+0.1,y+0.1,'b--', linewidth=15)
-                else:
-                    continue
+                    y = np.linspace(v1.pos_[0] + 0.5, v2.pos_[0] + 0.5, 100)
+                    x = np.linspace(v1.pos_[1] + 0.5, v2.pos_[1] + 0.5, 100)
+                    
+                    if idx <= 3:
+                        plt.plot(x,y,'y-', linewidth=15)
+                    else:
+                        plt.plot(x+0.1,y+0.1,'b--', linewidth=15)
+                # else:
+                #     continue
     def map_vis(self):
         # Draw grid map 
         x_min = 0
@@ -470,7 +472,7 @@ class map_vis(object):
         self.num_fig = self.num_fig + 1
 
         if style_dis == "combined":
-            plt.figure(num=None, figsize=(55, 25), dpi=80, facecolor='w', edgecolor='k')
+            plt.figure(num=None, figsize=(60, 25), dpi=80, facecolor='w', edgecolor='k')
             plt.subplot(1,2,1)
             self.vis()
             plt.xticks(fontsize = fontsize_dis)
@@ -481,7 +483,7 @@ class map_vis(object):
             plt.xticks(fontsize = fontsize_dis)
             plt.yticks(fontsize = fontsize_dis)
 
-            plt.suptitle("Occupancy grid map at iteration t = {}".format(self.num_fig/7 + 1), fontsize = fontsize_dis)
+            plt.suptitle("Interactive Planning and Sensing at t = {}".format(self.num_fig), fontsize = fontsize_dis)
 
             for sensor in self.sensors_:
                 cv = self.vertex_[sensor]

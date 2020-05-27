@@ -32,37 +32,6 @@ $ sudo apt-get -y install libboost-all-dev libeigen3-dev
 $ sudo apt-get -y install libcgal-dev
 ```
 
-# Ceres 
-Check http://ceres-solver.org/installation.html#linux to install ceres-solver
-```
-Clone the ceres solver to folder
-$ git clone https://ceres-solver.googlesource.com/ceres-solver 
-
-Install dependency library 
-$ sudo apt-get install cmake
-$ sudo apt-get install libgoogle-glog-dev
-$ sudo apt-get install libatlas-base-dev
-
-Add Eigen to /usr/local/include
-$ sudo apt-get install libeigen3-dev
-
-$ sudo apt-get install libsuitesparse-dev
-$ sudo add-apt-repository ppa:bzindovic/suitesparse-bugfix-1319687
-$ sudo apt-get update
-$ sudo apt-get install libsuitesparse-dev
-
-Install Ceres-solver
-Enter the folder
-$ cd ~/Software/ceres-solver
-$ mkdir ceres-bin
-$ cd ceres-bin
-$ cmake ../ceres-solver
-$ make -j3
-$ make test
-$ sudo -s
-$ make install
-```
-
 # Install Visual Studio code (Optional)
 Can downloaded from https://code.visualstudio.com/ and installed mannually. Otherwise, run:
 ```
@@ -111,7 +80,6 @@ Add the following line to your ~/.bashrc
 $ export LD_LIBRARY_PATH=:/usr/local/lib/
 ```
 
-
 ## 3. Set up workspace
 Set up the workspace at any location as you prefer. Here I use "~/Workspace/cbba_sim" as example
 ```
@@ -140,38 +108,99 @@ $ export PYTHONPATH=$LTLSAMPLING/src/lcmtypes/python:$LTLSAMPLING/src/lcmtypes/p
 
 ## 6. Test the example
 ### Visualize the map
-Edit the configuration files for agents, tasks and map. These configuration files are stored at "/cbba_sim/src/config"
-Once the editing is completed, run 
+Edit the configuration files for agents, tasks and map and true_map. These configuration files are stored at "/cbba_sim/src/config"
+In this example, we created an example of mountain search and rescue. The actucal mountain map is stored at "/data/mountain_map.jpg":
+<img src="/data/mountain_map.jpg" align="middle" height="500" >
+
+To generate the grid map corresponding to the actual moutain map, run 
 ```
 $ cd bin
-$ ./test_map
+$ ./vis_map_demo
 ```
 Check the result at "/ipas/build/bin", the result is the figure called "result_map.jpg". Example of the result can be: 
 <img src="/data/result_map.jpg" align="middle" height="500" >
-where the actucal mountain environment is 
-<img src="/data/mountain_map.jpg" align="middle" height="500" >
 
 #### Comments about result
-1. The grey cells are obstacles, orange cells are regions of interest (tasks) and the cell marked by v_i is the initial position of vehicle i.
+1. The black cells are obstacles which can not be passed through by vehicles.
 
 
 ### Decentralized route-planning for multiple vehicles system in known environments
-Once the information of agents, tasks and map is defined, run the following command to visualize the result of task assignment among multiple vehicles by CBBA
+4 vehicles in the corners are required to search the trapped hikers in 10 pre-specified locations marked from P3 - P12. Each yellow-colored region of interest is required a single vehicle to visit. With perfect knowledeg of the environment, the decentralized route-planning for the multi-vehicle system can be obtained by running 
 ```
 $ cd bin
 $ ./cbba_demo
 ```
 Check the result at "/ipas/build/bin", the result is the figure called "result_cbba.jpg". Example of the result can be: 
-<img src="/data/cbba_demo_with_accurate_environment.jpg.jpg" align="middle" height="500" >
+<img src="/data/cbba_demo_with_accurate_environment.jpg" align="middle" height="500" >
 
 #### Comments about result
-1. The feasible path for vehicle i is draw by straight line with corresponding color, i.e., vehicle 1 is required to move to cell 6 first, then move to cell 75 along the blue line.  
+1. The feasible path for vehicle i is draw by straight line with corresponding color. 
+
 
 ### Decentralized route-planning for multiple vehicles system in unknown environment - Interactive Planning and Sensing
-Once the information of agents, tasks and map is defined, run the following command to visualize the result of task assignment among multiple vehicles by CBBA
+Now assume, no accurate environment is given a prioir. Each vehicle in the cornor is equipped with a drone (sensor) which can be used to explore the unknown environment. The routes for sensors to take measurements at specified locations and the optimal routes for vehicles to accomplish the search and rescue mission can be generated as follows: Open two terminals. In one terminal, run  
 ```
 $ cd bin
-$ ./ipad_demo
+$ ./ipas_demo
 ```
-Check the result at "/ipas/src/deomo", the result is the figure called "result_cbba.jpg". Example of the result can be: 
-<img src="/data/ipas_grid_map.gif" align="middle" height="500" >
+
+In another terminal, run
+```
+$ cd /ipas/src/demo/
+$ python vis_ipas_lcm.py
+```
+
+The results at each iteration will be stored at folder "/ipas/src/deomo" automatically. The gif for the whole interactive planning and sensing for the example of mountain search and rescue is: 
+<img src="/data/ipas.gif" align="middle" height="500" >
+
+#### Comments about result
+1. At each frame, two plots are displayed. The left one is the probabilistic occupancy map and the right one is the information gain for each vertex in the map. 
+2. The yellow lines refers the optimal routes for actors to accomplish the search and rescue mission. The blue dash line refers the routes for sensors to explore the unknown environment.
+
+### Decentralized route-planning for multiple vehicles system in unknown environment - Information-Driven Planning and Sensing
+As a comparison, information driven planning and sensing algorithm is implmented to recover the whole unknown environment as much as it can and compute the optimal routes for actors to satisfy the given global mission. The results can be generated: Open two terminals. In one terminal, run (need to run python file first)
+```
+$ cd /ipas/src/demo/
+$ python vis_ipas_lcm.py
+```
+
+In another terminal, run
+```
+$ cd bin
+$ ./infor_driven_demo
+```
+
+The results at each iteration will be stored at folder "/ipas/src/deomo" automatically. The gif for the information driven approach for the example of mountain search and rescue is: 
+<img src="/data/info_driven.gif" align="middle" height="500" >
+
+#### Comments about result
+1. Much more sensory resources is required compared to the results shown above.
+2. Larger total routes cost is generated by the information-driven approach. It is not always true that more information of environment will provide better results. 
+
+
+### Decentralized route-planning for multiple vehicles system in unknown environment - Interactive Planning and Sensing With Bayesian Optimization
+To consider computational efficiency of information gain, Bayesian optimization is implemented to predict a set of sensors locations without evaluating the information gain for each possible sensors locations. The results can be generated: Open three terminals. In the first terminal, run  (need to run python file first)
+```
+$ cd /ipas/src/demo/
+$ python vis_ipas_lcm.py
+```
+
+In the second terminal, run 
+```
+$ cd /ipas/src/demo/
+$ python bayesian_opt_ipas_lcm.py
+```
+
+In the last terminal, run
+```
+$ cd bin
+$ ./infor_driven_demo
+```
+
+The results at each iteration will be stored at folder "/ipas/src/deomo" automatically. The gif for the interactive planning and sensing with Bayesian optimization for the example of mountain search and rescue is: 
+<img src="/data/ipas_bayesian.gif" align="middle" height="500" >
+
+#### Comments about result
+1. Similar convergence rate is required by using Bayesian optimization.
+2. No optimality scarifice is necessary. 
+3. Computational burden is reduced. 
