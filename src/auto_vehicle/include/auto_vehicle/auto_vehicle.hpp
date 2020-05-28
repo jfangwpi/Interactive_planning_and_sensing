@@ -45,8 +45,8 @@ namespace librav{
         std::vector<Eigen::Matrix<int,1,Eigen::Dynamic>> iteration_neighb_history_;
 
         // Required by synchronization algorithm
-        std::vector<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> assignment_;
-        std::vector<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> winning_bids_;
+        std::vector<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> assignment_matrix_history_;
+        std::vector<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> winning_bids_history_;
     }History;
 
     class AutoVehicle
@@ -132,6 +132,8 @@ namespace librav{
             void PathRemove();
 
             /* Synchronization Algorithm */
+            // Initialize syn 
+            void InitSyn(int64_t num_tk);
             // Update the syn_c and the optimal insert position 
             void update_reward_dependent(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph);
             // Find the available dependent task based on current task path
@@ -141,13 +143,13 @@ namespace librav{
             // Add dependent task into task path
             void bundle_add_dependent(TasksSet task, const std::shared_ptr<Graph_t<SquareCell*>> graph);
             // Update the optimal group for the given task
-            void optimal_group_finder(TasksSet task);
+            void optimal_group_finder(Task task);
             // Find the vehicles based on the bids
-            std::vector<int> FindVehicleFrombid(TasksSet task, std::vector<double> winners_bid);
+            std::vector<int> FindVehicleFrombid(Task task, std::vector<double> winners_bid);
             // Find the winners for the given task
-            std::vector<int> winners_finder(TasksSet task);
+            std::vector<int> winners_finder(Task task);
             // Find the number of vehicle 
-            int winners_count(TasksSet task);
+            int winners_count(Task task);
             // Remove outbid dependent task from task path
             void path_remove_dependent(TasksSet tasks);
             // Remove outbid dependent task from task bundle
@@ -194,7 +196,9 @@ namespace librav{
 
         void MergeHSpots(std::shared_ptr<AutoTeam_t<AutoVehicle>> teams);
         void InformationDrivenHSpots(std::shared_ptr<AutoTeam_t<AutoVehicle>> teams);
+    };
 
+    namespace CollaborativeAlgorithm{
 
         /*** Functions for Synchronization algorithm ***/
         // Insert dependent tasks into task bundle/path and update iteration

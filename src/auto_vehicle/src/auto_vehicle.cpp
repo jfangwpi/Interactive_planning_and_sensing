@@ -35,7 +35,7 @@ AutoVehicle::AutoVehicle(int64_t idx,int64_t pos,int64_t num_v,Eigen::MatrixXi n
     for(size_t ii = 0; ii < num_vehicles_; ii++){
         network_topo_(ii) = network_topo(ii);
     }
-    InitCBBA(num_tasks_);
+    InitSyn(num_tasks_);
     local_grid_ = nullptr;
     local_graph_ = nullptr;
     hotspots_ = {};
@@ -68,6 +68,18 @@ void AutoVehicle::InitCBBA(int64_t num_tk){
     cbba_history_.iteration_neighb_history_ = {iteration_neighb_};
 
     cbba_iter_ = 0;
+}
+
+void AutoVehicle::InitSyn(int64_t num_tk){
+    InitCBBA(num_tk);
+    num_independent_tasks_ = num_tasks_ - num_collaborative_tasks_;
+    syn_c_ = -1 * Eigen::MatrixXd::Ones(1, num_tasks_);
+	
+	// Initialize dependent tasks
+	assignment_matrix_ = Eigen::MatrixXd::Zero(num_tasks_, num_vehicles_);
+	winning_bids_matrix_ = -1 * Eigen::MatrixXd::Ones(num_tasks_, num_vehicles_);
+    cbba_history_.assignment_matrix_history_ = {assignment_matrix_};
+    cbba_history_.winning_bids_history_ = {winning_bids_matrix_};
 }
 
 
@@ -920,7 +932,7 @@ void AutoVehicle::bundle_add_dependent(TasksSet tasks, std::shared_ptr<Graph_t<S
 	last_pos_dependent_ = -1;
 	if (!task_path_.empty()){
 		for (int i = task_path_.size()-1; i >= 0; i--){
-			if(task_path_[i] >= num_tasks_inde_){
+			if(task_path_[i] >= num_independent_tasks_){
 				last_pos_dependent_ = i + 1;
 				break;
 			}
@@ -933,11 +945,11 @@ void AutoVehicle::bundle_add_dependent(TasksSet tasks, std::shared_ptr<Graph_t<S
 			break;
 		}
 
-		cbba_bundle_.push_back(desired_idx);
-		std::vector<int>::iterator it = cbba_path_.begin();
-		cbba_path_.insert(it+insert_pos_(0, desired_idx), desired_idx);
+		task_bundle_.push_back(desired_idx);
+		std::vector<int64_t>::iterator it = task_path_.begin();
+		task_path_.insert(it+opt_pos_(0, desired_idx), desired_idx);
 		
-		if(cbba_bundle_.size() > max_tasks_){
+		if(task_path_.size() > num_tasks_){
 			bundleFull = 1;
 		}
 	}
@@ -953,24 +965,24 @@ void AutoVehicle::bundle_add_dependent(TasksSet tasks, std::shared_ptr<Graph_t<S
 	// std::cout << "The assignment matrix is " << std::endl;
 	// std::cout << assignment_matrix_ << std::endl;
 
-	std::vector<int> current_p = cbba_path_;
+	std::vector<int64_t> current_p = task_path_;
 	for (int t_idx = 0; t_idx < current_p.size(); t_idx++){
-		cbba_Task& task = tasks.FindTask(current_p[t_idx]);
-		if(task.num_agents_ > 1){
-			std::vector<int> path_copy = cbba_path_;
-			std::vector<int>::iterator it = std::find(cbba_path_.begin(), cbba_path_.end(), task.idx_);
-			int task_length = it - cbba_path_.begin();
+		Task task = tasks.GetTaskFromID(current_p[t_idx]);
+		if(task.num_vehicles_ > 1){
+			std::vector<int64_t> path_copy = task_path_;
+			std::vector<int64_t>::iterator it = std::find(task_path_.begin(), task_path_.end(), task.idx_);
+			int task_length = it - task_path_.begin();
 			path_copy.resize(task_length+1);	
 
-			double path_part = syn_benefit - TaskAssignment::PathLengthCalculationBasedType(tasks, graph, path_copy, init_pos_);
-			cbba_reward_(0, task.idx_) = path_part;
+			double path_part = RW_BENEFIT_ - PathCostComputation(tasks,local_graph_,path_copy,pos_);
+			reward_[task.idx_] = path_part;
 			winning_bids_matrix_(task.idx_, idx_) = path_part;
 
 			optimal_group_finder(task);
 
 			if (assignment_matrix_(task.idx_,idx_) == 0){
-				cbba_path_.erase(std::remove(cbba_path_.begin(), cbba_path_.end(), task.idx_), cbba_path_.end());
-				cbba_bundle_.erase(std::remove(cbba_bundle_.begin(), cbba_bundle_.end(), task.idx_), cbba_bundle_.end());
+				task_path_.erase(std::remove(task_path_.begin(), task_path_.end(), task.idx_), task_path_.end());
+				task_bundle_.erase(std::remove(task_bundle_.begin(), task_bundle_.end(), task.idx_), task_bundle_.end());
 			}
 			
 			/*** ======================================== DEBUG =============================== ***/
@@ -987,6 +999,250 @@ void AutoVehicle::bundle_add_dependent(TasksSet tasks, std::shared_ptr<Graph_t<S
 		}
 	}
 
-	history_.assignment_.push_back(assignment_matrix_);
-	history_.winning_bids_.push_back(winning_bids_matrix_);
+	cbba_history_.assignment_matrix_history_.push_back(assignment_matrix_);
+	cbba_history_.winning_bids_history_.push_back(winning_bids_matrix_);
+}
+
+/*** Find the available dependent tasks ***/
+void AutoVehicle::available_dep_tasks_finder(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph){
+	update_reward_dependent(tasks, graph);
+	h_avai_de_ = {};
+	for (auto &task: tasks.tasks_){
+		if (task.num_vehicles_ > 1){
+			int de_pos_ = -1;
+	
+			int num_winners = winners_count(task);
+			std::vector<int64_t>::iterator it = std::find(task_bundle_.begin(), task_bundle_.end(), task.idx_);
+			if (last_pos_dependent_ == -1){
+				de_pos_ = opt_pos_(0, task.idx_);
+			}
+			else{
+				de_pos_ = last_pos_dependent_;
+			}
+
+			if(it == task_bundle_.end()){
+				if (num_winners < task.num_vehicles_ && opt_pos_(0, task.idx_) >= de_pos_){
+					h_avai_de_.push_back(task.idx_);
+				}
+				else if(num_winners < task.num_vehicles_ && opt_pos_(0, task.idx_) < de_pos_){
+					opt_pos_(0, task.idx_) = last_pos_dependent_;
+					h_avai_de_.push_back(task.idx_);
+				}
+				else if(num_winners == task.num_vehicles_ && opt_pos_(0, task.idx_) >= de_pos_){
+					h_avai_de_.push_back(task.idx_);
+				}
+			}
+		}
+	}	
+}
+
+/*** Update syn_c for dependent tasks ***/
+void AutoVehicle::update_reward_dependent(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph){
+    // Find dependent task which is not in the curret task path
+    std::vector<int64_t> tk_NotInBunlde = {};
+    for(auto& tk_: tasks.tasks_){
+        std::vector<int64_t>::iterator it_tk = std::find(task_bundle_.begin(),task_bundle_.end(),tk_.idx_);
+        if(it_tk == task_bundle_.end() && vehicle_type_ == tk_.task_type_ && tk_.num_vehicles_ > 1){
+            tk_NotInBunlde.push_back(tk_.idx_);
+        }
+    }
+
+	for (int jj = 0; jj < tk_NotInBunlde.size(); jj++){
+        // Find all possible insert positions along current task path
+        std::vector<std::vector<int64_t>> dup_path_(task_path_.size()+1,task_path_);
+        std::vector<double> poss_reward_ = {};
+        for(int64_t mm = 0; mm < dup_path_.size(); mm++){
+            std::vector<int64_t>::iterator it_insert = dup_path_[mm].begin();
+            dup_path_[mm].insert(it_insert+mm,tk_NotInBunlde[jj]);
+
+            // Compute the path cost corresponding to the duplicated task path
+            double path_cost = PathCostComputation(tasks,local_graph_,dup_path_[mm],pos_);
+            poss_reward_.push_back(path_cost);
+        }
+        double min_reward = RW_BENEFIT_;
+        double best_pos = -1;
+        for (int i = 0; i < poss_reward_.size(); i++){
+            if(poss_reward_[i] < min_reward){
+                min_reward = poss_reward_[i];
+                best_pos = i;
+            }
+        }
+        syn_c_(0, tk_NotInBunlde[jj]) = RW_BENEFIT_ - min_reward;
+        opt_pos_(0, tk_NotInBunlde[jj]) = best_pos;
+	}
+}
+
+/*** Find the winners of given dependent task ***/
+std::vector<int> AutoVehicle::winners_finder(Task task){
+	std::vector<int> winners_ = {};
+	for (int i =0; i < num_vehicles_; i++){
+		if(assignment_matrix_(task.idx_, i) == 1 && winning_bids_matrix_(task.idx_, i) > 0){
+			winners_.push_back(i);
+		}
+	}
+	return winners_;
+}
+
+int AutoVehicle::winners_count(Task task){
+	std::vector<int> winners = winners_finder(task);
+	return winners.size();
+}
+
+
+/*** Find the desired dependent task from the list of available dependent tasks ***/
+int AutoVehicle::desired_dep_task_finder(){
+	int desired_idx = -1;
+	if (!h_avai_de_.empty()){
+		double max_reward = 0.0;
+		for (auto &t_idx: h_avai_de_){
+			if(syn_c_(0, t_idx) > max_reward){
+				max_reward = syn_c_(0, t_idx);
+				desired_idx = t_idx;
+			}
+		}
+	}
+	return desired_idx;
+}
+
+
+/*** Update the optimal group based on current knowledge of reward ***/
+void AutoVehicle::optimal_group_finder(Task task){
+	// Find the ordered map
+	std::multimap<double, int> winning_bids_collect_ = {};
+	for (int i = 0; i < num_vehicles_; i++){
+		if(winning_bids_matrix_(task.idx_, i) > 0){
+			winning_bids_collect_.insert(std::pair<double,int>(winning_bids_matrix_(task.idx_,i),i));
+		}
+	}
+
+	int n = winning_bids_collect_.size();
+	int k = task.num_vehicles_;
+
+	std::multimap<double, int>::iterator it;
+	std::vector<double> ordered_bids;
+	for (auto it = winning_bids_collect_.begin(); it != winning_bids_collect_.end(); it++){
+		ordered_bids.push_back((*it).first);
+	}
+	std::cout << std::endl;
+
+	std::multimap<double, int>::iterator it1;
+	double waiting_time_min = RW_BENEFIT_;
+	std::vector<double> winners_bids;
+	for (auto it1 = winning_bids_collect_.begin(); it1 != winning_bids_collect_.end(); it1++){
+		double x = (*it1).first;
+		std::vector<double> winning_bids = CollaborativeAlgorithm::KClosestFinder(ordered_bids, x, k, n);
+		double max_bid = CollaborativeAlgorithm::maximum_bid_finder(winning_bids);
+		double min_bid = CollaborativeAlgorithm::minimum_bid_finder(winning_bids);
+		double waiting_time = max_bid - min_bid;
+		if(waiting_time <= waiting_time_min){
+			waiting_time_min = waiting_time;
+			winners_bids = winning_bids;
+		}
+	}
+
+	std::vector<int> winners = FindVehicleFrombid(task, winners_bids);
+	for (int i = 0; i < num_vehicles_;i++){
+		assignment_matrix_(task.idx_, i) = 0;
+	}
+	for (auto &e: winners){
+		assignment_matrix_(task.idx_, e) = 1;
+	}
+	if (assignment_matrix_(task.idx_, idx_) == 0){
+		winning_bids_matrix_(task.idx_, idx_) = 0.0;
+	}
+}
+
+/*** Find the K closest reward ***/
+std::vector<double> CollaborativeAlgorithm::KClosestFinder(std::vector<double> ordered_bids, int x, int k, int n){
+	std::vector<double> cloest_set;
+	int l = CollaborativeAlgorithm::findCrossOver(ordered_bids, 0, n-1, x);
+	int r = l + 1;
+	int count = 0;
+
+	if(ordered_bids[l] == x){
+		cloest_set.push_back(ordered_bids[l]);
+		count = count + 1;
+		l--;
+	}
+
+	while (l >= 0 && r < n && count < k){
+		if(x - ordered_bids[l] < ordered_bids[r] - x){
+			cloest_set.push_back(ordered_bids[l--]);
+		}
+		else{
+			cloest_set.push_back(ordered_bids[r++]);
+		}
+		count ++;
+	}
+
+	while (count < k && l >= 0){
+		cloest_set.push_back(ordered_bids[l--]);
+		count ++;
+	}
+
+	while (count < k && r < n){
+		cloest_set.push_back(ordered_bids[r++]);
+		count ++;
+	}
+	return cloest_set;
+}
+
+/*** Implement to find the K closest reward ***/
+int CollaborativeAlgorithm::findCrossOver(std::vector<double> ordered_bids, int low, int high, int x){
+
+	if (ordered_bids[high] <= x){
+		return high;
+	}
+	if (ordered_bids[low] > x){
+		return low;
+	}
+
+	int mid = (low + high)/2;
+
+	if(ordered_bids[mid] <= x && ordered_bids[mid+1] > x){
+		return mid;
+	}
+
+	if(ordered_bids[mid] < x){
+		return CollaborativeAlgorithm::findCrossOver(ordered_bids, mid+1, high, x);
+	}
+
+	return CollaborativeAlgorithm::findCrossOver(ordered_bids, low, mid-1, x);
+}
+
+/*** Find the maximum bid with given list of bids ***/
+double CollaborativeAlgorithm::maximum_bid_finder(std::vector<double> winning_bids){
+	double max_bid = 0.0;
+	for (auto &e:winning_bids){
+		if(e > max_bid){
+			max_bid = e;
+		}
+	}
+	return max_bid;
+}
+
+/*** Find the minimum bid with given list of bids ***/
+double CollaborativeAlgorithm::minimum_bid_finder(std::vector<double> winning_bids){
+	double min_bid = RW_BENEFIT_;
+	for (auto &e: winning_bids){
+		if(e < min_bid){
+			min_bid = e;
+		}
+	}
+	return min_bid;
+}
+
+/*** Find the lists of index of vehicles with given list of bids ***/
+std::vector<int> AutoVehicle::FindVehicleFrombid(Task task, std::vector<double> winners_bid){
+	std::vector<int> winners;
+	for (auto &bid: winners_bid){
+		for (int i = 0; i < num_vehicles_; i++){
+			std::vector<int>::iterator exist = std::find(winners.begin(), winners.end(), i);
+			if(bid == winning_bids_matrix_(task.idx_, i) && winning_bids_matrix_(task.idx_, i) != 0.0 && exist == winners.end()){
+				winners.push_back(i);
+				break;
+			}
+		}
+	}
+	return winners;
 }
