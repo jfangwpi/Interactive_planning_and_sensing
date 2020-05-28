@@ -148,6 +148,7 @@ namespace librav{
             std::vector<int> FindVehicleFrombid(Task task, std::vector<double> winners_bid);
             // Find the winners for the given task
             std::vector<int> winners_finder(Task task);
+            std::vector<double> winning_bids_finder(Task task);
             // Find the number of vehicle 
             int winners_count(Task task);
             // Remove outbid dependent task from task path
@@ -202,18 +203,18 @@ namespace librav{
 
         /*** Functions for Synchronization algorithm ***/
         // Insert dependent tasks into task bundle/path and update iteration
-        void bundle_add_dependent(TasksList tasks, const std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<Agent>& agents);
+        void BundleAdd(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team);
         // Remove dependent tasks from task path/bundle
-        void path_remove_dependent(TasksList tasks, std::vector<Agent>& agents);
+        void PathRemove(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team);
         // Communicate with neighbors
-        void communicate_dependent(std::vector<Agent>& agents, TasksList tasks);
+        void communicate_dependent(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team);
         // Find the K closest reward based on current reward
         std::vector<double> KClosestFinder(std::vector<double> ordered_bids, int x, int k, int n);
         int findCrossOver(std::vector<double> ordered_bids, int low, int high, int x);
         double maximum_bid_finder(std::vector<double> winning_bids);
         double minimum_bid_finder(std::vector<double> winning_bids);
         // Check whether the convergence of synchronization algorithm is achieved
-        bool success_checker_dependent(std::vector<Agent> agents, TasksList tasks);
+        bool success_checker_dependent(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team);
         /*** Compute the waiting time required by vehicle ***/
         double WaitingTimeCalculation(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<Agent>& agents, TasksList tasks);
         int FindNumAppearance(std::vector<int> list, int target);
@@ -222,6 +223,8 @@ namespace librav{
         double MaximumRewardCalculation(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int> bundle, int init_pos, TasksList tasks);
         // Compute certain length of path by considerring the waiting time
         double PathLengthCalculationWithWaiting(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int> bundle, int init_pos, TasksList tasks);
+
+        void SynchronizationAlgorithm(TasksSet tasks, std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team);
 
     };
 }

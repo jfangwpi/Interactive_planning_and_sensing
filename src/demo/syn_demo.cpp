@@ -1,7 +1,7 @@
 /*
- * test_reward.cpp
+ * test_syn_v3.cpp
  *
- *  Created on: July 25, 2019
+ *  Created on: Feb 15, 2017
  *      Author: jfang
  */
 
@@ -33,10 +33,10 @@
 using namespace librav;
 using namespace cv;
 
-
 int main(int argc, char** argv )
-{   
-    //===============================================================================================//
+{
+
+	//===============================================================================================//
     //===========================================Task - Agent========================================//
     //===============================================================================================//
     // Parameters
@@ -61,6 +61,51 @@ int main(int argc, char** argv )
     } // Initialize the local grid map for each auto vehicle
 
     CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
+
+
+
+	std::cout << "RESULT OF CBBA " << std::endl;
+	for(int i = 0; i < vehicle_team_->auto_team_.size(); i++){
+		std::cout << "Vehicle " << i << std::endl;
+			std::cout << "Winners for tasks are " << std::endl;
+			std::cout << vehicle_team_->auto_team_[i]->vehicle_.cbba_z_ << std::endl;
+			std::cout << "Highest reward are " << std::endl;
+			std::cout << vehicle_team_->auto_team_[i]->vehicle_.cbba_y_ << std::endl;
+			std::cout << "Path info is " << std::endl;
+			for(auto &b: vehicle_team_->auto_team_[i]->vehicle_.task_path_)
+				std::cout << b << " ";
+			std::cout << std::endl;
+	}
+
+	/************************************************************************************************************/
+	/**************************************    Synchronization    ***********************************************/
+	/************************************************************************************************************/
+   
+    for (auto &agent:vehicle_team_->auto_team_){
+        agent->vehicle_.iteration_neighb_ = Eigen::MatrixXi::Zero(1, vehicle_team_->num_vehicles_);
+        agent->vehicle_.cbba_history_.iteration_neighb_history_ =  {agent->vehicle_.iteration_neighb_};
+    }
+	
+    std::cout << "=================================================================================== " << std::endl;
+    std::cout << "=================================================================================== " << std::endl;
+    std::cout << "=================================================================================== " << std::endl;
+    std::cout << "=================================================================================== " << std::endl;
+    
+    CollaborativeAlgorithm::SynchronizationAlgorithm(tasks_,vehicle_team_);
+    std::cout << "Synchronization is achieved ." <<std::endl;
+    std::cout << "RESULT OF Syn " << std::endl;
+	for(int i = 0; i < vehicle_team_->auto_team_.size(); i++){
+		std::cout << "Vehicle " << i << std::endl;
+        std::cout << "Winners for tasks are " << std::endl;
+        std::cout << vehicle_team_->auto_team_[i]->vehicle_.cbba_z_ << std::endl;
+        std::cout << "Highest reward are " << std::endl;
+        std::cout << vehicle_team_->auto_team_[i]->vehicle_.cbba_y_ << std::endl;
+        std::cout << "Path info is " << std::endl;
+        for(auto &b: vehicle_team_->auto_team_[i]->vehicle_.task_path_)
+            std::cout << b << " ";
+        std::cout << std::endl;
+	}
+
     std::map<int64_t,Path_t<SquareCell*>> path_ltl_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,TaskType::RESCUE);
     Path_t<SquareCell*> path_origin[4];
     for (int i = 0; i < 4; i++){
@@ -71,7 +116,6 @@ int main(int argc, char** argv )
         }
         std::cout << std::endl;
     }
-
 
     // Visualization
 	// Image Layouts: square grid -> graph -> path
@@ -85,13 +129,8 @@ int main(int argc, char** argv )
 	}
 	
 	// display visualization result
-	imwrite("cbba_demo_with_accurate_environment.jpg",vis_img);
+	imwrite("collaborative_decentralized_route_planning.jpg",vis_img);
 
 	waitKey(0);
-
-
-  
- 
-
-	return 0;
+    return 0;
 }

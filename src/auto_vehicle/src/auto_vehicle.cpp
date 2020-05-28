@@ -71,7 +71,26 @@ void AutoVehicle::InitCBBA(int64_t num_tk){
 }
 
 void AutoVehicle::InitSyn(int64_t num_tk){
-    InitCBBA(num_tk);
+    reward_ = reward_;
+    num_tasks_ = num_tk;
+
+    task_bundle_ = task_bundle_;
+    task_path_ = task_path_;
+
+    opt_pos_ = -1 * Eigen::MatrixXi::Ones(1,num_tk);
+    h_avai_ = {};
+
+    cbba_y_ = Eigen::MatrixXd::Zero(1,num_tk);
+    cbba_z_ = -1 * Eigen::MatrixXi::Ones(1,num_tk);   
+
+    iteration_neighb_ = -1 * Eigen::MatrixXi::Ones(1,num_vehicles_);
+
+    cbba_history_.y_history_ = {cbba_y_};
+    cbba_history_.z_history_ = {cbba_z_};
+    cbba_history_.iteration_neighb_history_ = {iteration_neighb_};
+
+    cbba_iter_ = 0;
+
     num_independent_tasks_ = num_tasks_ - num_collaborative_tasks_;
     syn_c_ = -1 * Eigen::MatrixXd::Ones(1, num_tasks_);
 	
@@ -88,7 +107,7 @@ void AutoVehicle::UpdateReward(TasksSet tasks){
     std::vector<int64_t> tk_NotInBunlde = {};
     for(auto& tk_: tasks.tasks_){
         std::vector<int64_t>::iterator it_tk = std::find(task_bundle_.begin(),task_bundle_.end(),tk_.idx_);
-        if(it_tk == task_bundle_.end() && vehicle_type_ == tk_.task_type_){
+        if(it_tk == task_bundle_.end() && vehicle_type_ == tk_.task_type_ && tk_.num_vehicles_ == 1){
             tk_NotInBunlde.push_back(tk_.idx_);
         }
     }
@@ -276,6 +295,7 @@ std::shared_ptr<AutoTeam_t<AutoVehicle>> IPASMeasurement::ConstructAutoTeam(){
 
     int64_t num_agents = config_reader.GetReal("num_agents", 0);
     int64_t num_tasks = config_reader.GetReal("num_tasks",0);
+    int64_t num_collaborative_tasks = config_reader.GetReal("num_collaborative_tasks",0);
     int64_t num_sensors = config_reader.GetReal("num_sensors",0);
 
 	std::vector<AutoVehicle> auto_vehicles;
@@ -301,8 +321,15 @@ std::shared_ptr<AutoTeam_t<AutoVehicle>> IPASMeasurement::ConstructAutoTeam(){
             std::cout << "Unknown task type." << std::endl;
         }
 
-        AutoVehicle auV = AutoVehicle(idx,init_pos,num_agents,comm_net,type,num_tasks,num_sensors);
-        auto_vehicles.push_back(auV);
+        if (num_collaborative_tasks == 0){
+            AutoVehicle auV = AutoVehicle(idx,init_pos,num_agents,comm_net,type,num_tasks,num_sensors);
+            auto_vehicles.push_back(auV);
+        }
+        else{
+            AutoVehicle auV = AutoVehicle(idx,init_pos,num_agents,comm_net,type,num_tasks,num_collaborative_tasks, num_sensors);
+            auto_vehicles.push_back(auV);
+        }
+        
 	}
     std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_group = ConstructAutoTeam(auto_vehicles);
     std::cout << "Configuration reading is done. " << std::endl;
@@ -956,7 +983,8 @@ void AutoVehicle::bundle_add_dependent(TasksSet tasks, std::shared_ptr<Graph_t<S
 	
 	/* ========================================= Debug =====================================*/
 	// std::cout << "After inserting all dependent tasks, the optimal sequence is " << std::endl;
-	// for (auto &b: cbba_path_){
+    // std::cout << "Vehicle " << idx_ << std::endl;
+	// for (auto &b: task_path_){
 	// 	std::cout << b << ", ";
 	// }
 	// std::cout << std::endl;
@@ -986,9 +1014,9 @@ void AutoVehicle::bundle_add_dependent(TasksSet tasks, std::shared_ptr<Graph_t<S
 			}
 			
 			/*** ======================================== DEBUG =============================== ***/
-			//std::cout << "============================= DEBUG =============================== " << std::endl;
+			// std::cout << "============================= DEBUG =============================== " << std::endl;
 			// std::cout << "The Result of converging optimal group of vehicle about task " << task.idx_ << " is: " << std::endl;
-			// for (auto &b: cbba_path_){
+			// for (auto &b: task_path_){
 			// 	std::cout << b << ", ";
 			// }
 			// std::cout << std::endl;
@@ -1046,7 +1074,7 @@ void AutoVehicle::update_reward_dependent(TasksSet tasks, std::shared_ptr<Graph_
             tk_NotInBunlde.push_back(tk_.idx_);
         }
     }
-
+    
 	for (int jj = 0; jj < tk_NotInBunlde.size(); jj++){
         // Find all possible insert positions along current task path
         std::vector<std::vector<int64_t>> dup_path_(task_path_.size()+1,task_path_);
@@ -1245,4 +1273,226 @@ std::vector<int> AutoVehicle::FindVehicleFrombid(Task task, std::vector<double> 
 		}
 	}
 	return winners;
+}
+
+void CollaborativeAlgorithm::BundleAdd(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team){
+    for (auto vehicle: vehicle_team->auto_team_){
+        vehicle->vehicle_.bundle_add_dependent(tasks, vehicle->vehicle_.local_graph_);
+		vehicle->vehicle_.iteration_neighb_(0, vehicle->vehicle_.idx_)++;
+		vehicle->vehicle_.cbba_history_.iteration_neighb_history_.push_back(vehicle->vehicle_.iteration_neighb_);
+    }
+
+}
+
+void CollaborativeAlgorithm::SynchronizationAlgorithm(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team){
+    bool flag = false;
+    // Init Synchronization Algorithm
+    for(auto&agent: vehicle_team->auto_team_){
+        agent->vehicle_.InitSyn(tasks.tasks_.size());
+    }
+    vehicle_team->num_tasks_ = tasks.tasks_.size();
+    int cont = 1;
+
+    while (flag != true && cont < 10e3){
+        std::cout << "iteration " <<cont << std::endl;
+        CollaborativeAlgorithm::BundleAdd(tasks, vehicle_team);
+        CollaborativeAlgorithm::communicate_dependent(tasks, vehicle_team);
+        std::cout << " ============================= Debug =========================== " << std::endl;
+        std::cout << "After communication " << std::endl;
+        for (auto &agent: vehicle_team->auto_team_){
+            std::cout << "agent " << agent->vehicle_.idx_ << std::endl;
+            std::cout << "winning bids matrix is " << std::endl;
+            std::cout << agent->vehicle_.winning_bids_matrix_ << std::endl;
+            std::cout << "assignment matrix is " << std::endl;
+            std::cout << agent->vehicle_.assignment_matrix_ << std::endl;
+            std::cout << "Iteration infor is " << std::endl;
+            std::cout << agent->vehicle_.iteration_neighb_ << std::endl;
+            std::cout << "current path is " << std::endl;
+            for (auto &b: agent->vehicle_.task_path_){
+                std::cout << b << ", ";
+            }
+            std::cout << std::endl;
+        }
+        CollaborativeAlgorithm::PathRemove(tasks,vehicle_team);
+        std::cout << "After bundle remove " << std::endl;
+        for (auto &agent: vehicle_team->auto_team_){
+            std::cout << "agent " << agent->vehicle_.idx_ << std::endl;
+            std::cout << "winning bids matrix is " << std::endl;
+            std::cout << agent->vehicle_.winning_bids_matrix_ << std::endl;
+            std::cout << "assignment matrix is " << std::endl;
+            std::cout << agent->vehicle_.assignment_matrix_ << std::endl;
+            std::cout << "Iteration infor is " << std::endl;
+            std::cout << agent->vehicle_.iteration_neighb_ << std::endl;
+            std::cout << "current path is " << std::endl;
+            for (auto &b: agent->vehicle_.task_path_){
+                std::cout << b << ", ";
+            }
+            std::cout << std::endl;
+        }
+        flag = CollaborativeAlgorithm::success_checker_dependent(tasks,vehicle_team);
+        cont++;
+    }
+}
+
+
+/*** Communicate with neighbors for dependent tasks ***/
+void CollaborativeAlgorithm::communicate_dependent(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team){
+	for (auto &agent: vehicle_team->auto_team_){
+		std::vector<int64_t> neighbors = agent->GetNeighborsIDs();
+		for (auto &neighbor_idx: neighbors){
+			Vehicle_t<AutoVehicle>* neighbor = vehicle_team->GetVehicleFromID(neighbor_idx);
+			// std::cout << " ============================= Debug =========================== " << std::endl;
+			// std::cout << "Before communication " << std::endl;
+			// std::cout << "Vehicle " << agent.idx_ << std::endl;
+			// std::cout << "The winning_bids matrix is " << std::endl;
+			// std::cout << agent.winning_bids_matrix_ << std::endl;
+			// std::cout << "The assignment matrix is " << std::endl;
+			// std::cout << agent.assignment_matrix_ << std::endl;
+
+			// std::cout << "Neighbor " << neighbor.idx_ << std::endl;
+			// std::cout << "The winning_bids matrix is " << std::endl;
+			// std::cout << neighbor.history_.winning_bids_.back() << std::endl;
+			// std::cout << "The assignment matrix is " << std::endl;
+			// std::cout << neighbor.history_.assignment_.back() << std::endl;
+			// std::cout << "Neighbors iteration is "<< std::endl;
+			// std::cout << neighbor.history_.iter_neighbors_his.back() << std::endl;
+			for (int i = 0; i < agent->vehicle_.num_vehicles_; i++){
+				for (auto &task: tasks.tasks_){
+					if(task.num_vehicles_ > 1){
+						if(i != agent->vehicle_.idx_ && i != neighbor->vehicle_.idx_ && neighbor->vehicle_.cbba_history_.iteration_neighb_history_.back()(0, i) >= agent->vehicle_.iteration_neighb_(0, i)){
+							agent->vehicle_.winning_bids_matrix_(task.idx_, i) = neighbor->vehicle_.cbba_history_.winning_bids_history_.back()(task.idx_,i);	
+						}
+						else if(i == neighbor->vehicle_.idx_){
+							agent->vehicle_.winning_bids_matrix_(task.idx_, i) = neighbor->vehicle_.cbba_history_.winning_bids_history_.back()(task.idx_,i);
+						}
+					}
+				}
+				if (i != agent->vehicle_.idx_ && agent->vehicle_.iteration_neighb_(0, i) <= neighbor->vehicle_.cbba_history_.iteration_neighb_history_.back()(0, i)){
+					agent->vehicle_.iteration_neighb_(0, i) = neighbor->vehicle_.cbba_history_.iteration_neighb_history_.back()(0, i);
+				}
+			}
+			// std::cout << "The result for vehicle " << agent.idx_ << " talking to neighbor " << neighbor.idx_ << " is: " << std::endl;
+			// std::cout << "The winning bids matrix is " << std::endl;
+			// std::cout << agent.winning_bids_matrix_ << std::endl;
+			// std::cout << "The iteration becomes " << std::endl;
+			// std::cout << agent.iteration_neighbors_ << std::endl;
+			// std::cout << "The assignment matrix is " << std::endl;
+			// std::cout << agent.assignment_matrix_ << std::endl;
+		}
+		for (auto &task: tasks.tasks_){
+			if(task.num_vehicles_ > 1){
+				agent->vehicle_.optimal_group_finder(task);
+			}
+		}
+		// std::cout << "Assignment Update for " << agent.idx_ << " based on latest information is " << std::endl;
+		// 	std::cout << "The winning bids matrix is " << std::endl;
+		// 	std::cout << agent.winning_bids_matrix_ << std::endl;
+		// 	std::cout << "The assignment matrix is " << std::endl;
+		// 	std::cout << agent.assignment_matrix_ << std::endl;
+	}
+
+	for (auto &agent: vehicle_team->auto_team_){
+		agent->vehicle_.cbba_history_.winning_bids_history_.push_back(agent->vehicle_.winning_bids_matrix_);
+		agent->vehicle_.cbba_history_.assignment_matrix_history_.push_back(agent->vehicle_.assignment_matrix_);
+	}
+}
+
+
+/*** Remove the outbid dependent tasks from task path ***/
+void AutoVehicle::path_remove_dependent(TasksSet tasks){
+	bool outbidForTask = 0;
+	for (int t_idx = 0; t_idx < task_path_.size(); t_idx++){
+		Task task = tasks.GetTaskFromID(task_path_[t_idx]);
+		if (task.num_vehicles_ > 1 && assignment_matrix_(task_path_[t_idx], idx_) == 0){
+			outbidForTask = 1;
+			task_path_[t_idx] = -1;
+			winning_bids_matrix_(task.idx_, idx_) = 0.0;
+		}
+
+		if(task.num_vehicles_ > 1 && outbidForTask == 1){
+			// cbba_path_[t_idx] = -1;
+			winning_bids_matrix_(task.idx_, idx_) = 0.0;
+			assignment_matrix_(task.idx_, idx_) = 0;
+		}
+	}
+	task_path_.erase(std::remove(task_path_.begin(), task_path_.end(),-1), task_path_.end());
+	bundle_remove_dependent();
+}
+
+
+/*** Remove outbit dependent tasks from task bundle ***/
+void AutoVehicle::bundle_remove_dependent(){
+	std::vector<int64_t> cbba_bundle_copy = task_bundle_;
+	for (int j = 0; j < cbba_bundle_copy.size(); j++){
+		std::vector<int64_t>::iterator it = std::find(task_path_.begin(), task_path_.end(), cbba_bundle_copy[j]);
+		if(it == task_path_.end()){
+			task_bundle_.erase(std::remove(task_bundle_.begin(), task_bundle_.end(), cbba_bundle_copy[j]), task_bundle_.end());
+		}
+	}
+}
+
+/*** Remove dependent tasks from task path for all vehicles ***/
+void CollaborativeAlgorithm::PathRemove(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team){
+	for (auto &agent: vehicle_team->auto_team_){
+		agent->vehicle_.path_remove_dependent(tasks);
+	}
+}
+
+
+
+/*** Implement to check is the convergence of synchronization algorithm is achieved ***/
+bool CollaborativeAlgorithm::success_checker_dependent(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team){
+    bool success = true;
+    for (auto &task: tasks.tasks_){
+		if (task.num_vehicles_ > 1){
+			std::vector<int> winners = {};
+			std::vector<double> bids = {};
+			for (auto &agent: vehicle_team->auto_team_){
+				if (winners.empty() && bids.empty()){
+					winners = agent->vehicle_.winners_finder(task);
+					bids = agent->vehicle_.winning_bids_finder(task);
+
+					if (winners.size() != task.num_vehicles_){
+						success = false;
+						break;
+					}
+				}
+				else{
+					std::vector<int> new_winners = agent->vehicle_.winners_finder(task);
+					std::vector<double> new_bids = agent->vehicle_.winning_bids_finder(task);
+					
+					if (new_winners.size() != winners.size() || new_bids.size() != bids.size()){
+						success = false;
+						break;
+					}
+					else{
+						for (int i = 0; i < winners.size(); i++){
+							if (new_winners[i] != winners[i]){
+								success = false;
+								break;
+							}
+						}
+						for (int j = 0; j < bids.size(); j++){
+							if(new_bids[j] != bids[j]){
+								success = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+    }
+    return success;
+}
+
+std::vector<double> AutoVehicle::winning_bids_finder(Task task){
+	std::vector<int> winners = winners_finder(task);
+	std::vector<double> winning_bids = {};
+	if (!winners.empty()){
+		for(auto & vehicle: winners){
+			winning_bids.push_back(winning_bids_matrix_(task.idx_, vehicle));
+		}
+	}
+	return winning_bids;
 }
