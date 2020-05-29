@@ -152,7 +152,7 @@ $ python vis_ipas_lcm.py
 ```
 
 The results at each iteration will be stored at folder "/ipas/src/deomo" automatically. The gif for the whole interactive planning and sensing for the example of mountain search and rescue is: 
-<img src="/data/ipas.gif" align="middle" height="500" width = "1200">
+<img src="/data/ipas.gif" align="middle" height="500" width = "1500">
 
 #### Comments about result
 1. At each frame, two plots are displayed. The left one is the probabilistic occupancy map and the right one is the information gain for each vertex in the map. 
@@ -173,7 +173,7 @@ $ ./infor_driven_demo
 
 The results at each iteration will be stored at folder "/ipas/src/deomo" automatically. The gif for the information driven approach for the example of mountain search and rescue is: 
 
-<img src="/data/info_driven.gif" align="middle" height="500" width = "1200">
+<img src="/data/info_driven.gif" align="middle" height="500" width = "1500">
 
 #### Comments about result
 1. Much more sensory resources is required compared to the results shown above.
@@ -200,7 +200,7 @@ $ ./infor_driven_demo
 ```
 
 The results at each iteration will be stored at folder "/ipas/src/deomo" automatically. The gif for the interactive planning and sensing with Bayesian optimization for the example of mountain search and rescue is: 
-<img src="/data/ipas_bayesian.gif" align="middle" height="500" width = "1200">
+<img src="/data/ipas_bayesian.gif" align="middle" height="500" width = "1500">
 
 #### Comments about result
 1. Similar convergence rate is required by using Bayesian optimization.
