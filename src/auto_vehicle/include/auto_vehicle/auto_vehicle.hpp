@@ -30,13 +30,13 @@
 
 
 namespace librav{
-    const double RW_BENEFIT_ = 1e5;
+    const double RW_BENEFIT_ = 1e10;
     const double MEASUREMENT_COST_ = 5;
     const double NOT_CAPABILITY_COST_ = RW_BENEFIT_ - MEASUREMENT_COST_;
     const int64_t MAX_TASKS = 1e10;
     const double EPS_ = 1e-2;
     const double ENTROPY_THRED_ = 0.0243;
-    const double PENALTY_ = 200.0;
+    const double PENALTY_ = 400.0;
 
     typedef struct
     {
