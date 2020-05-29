@@ -23,3 +23,6 @@ target_link_libraries(ipas_bayesian_demo cbba cbta vis ltl map utility ${OpenCV_
 
 add_executable(syn_demo syn_demo.cpp)
 target_link_libraries(syn_demo cbba cbta vis ltl map utility ${OpenCV_LIBS})
+
+add_executable(ipas_syn_demo ipas_syn_demo.cpp)
+target_link_libraries(ipas_syn_demo cbba cbta vis ltl map utility ${OpenCV_LIBS})

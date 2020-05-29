@@ -28,13 +28,15 @@ num_col = 30
 # agents = {1:0,2:99}
 # agents = {1:0}
 # agents = {1:0,2:380,3:399}
-agents = {1:0,2:29,3:870,4:899}
+# agents = {1:0,2:29,3:870,4:899}
+agents = {1:210,2:14,3:890}
 
 # tasks = {3:125, 4:199, 5:17, 6:398, 7:510, 8:409, 9:476, 10:701, 11:684, 12:284}
 # tasks = {1:67,2:76,3:139,4:180,5:215,6:309}
 # tasks = {1:50,2:95,3:7}
 # tasks = {1:24}
-tasks = {3:880,4:457,5:194,6:108,7:145,8:356,9:290,10:505,11:565,12:865}
+# tasks = {3:880,4:457,5:194,6:108,7:145,8:356,9:290,10:505,11:565,12:865}
+tasks = {3:604,4:577,5:348,6:440,7:807}
 
 class Vertex(object):
     def __init__(self, index, pos_x, pos_y, p, ig, occu):
@@ -289,26 +291,26 @@ class map_vis(object):
 
                 if path != []: 
                     # Mark Start cell
-                    if idx == 4:
+                    if idx == 3:
                         start_id = path[0]
                         start_vertex = self.vertex_[start_id]
                         plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]-0.2, 'S1', color='blue', fontsize=fontsize_dis, fontweight='bold')
-                    if idx == 5:
+                    if idx == 4:
                         start_id = path[0]
                         start_vertex = self.vertex_[start_id]
                         plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]-0.2, 'S2', color='blue', fontsize=fontsize_dis, fontweight='bold')
-                    if idx == 6:
+                    if idx == 5:
                         start_id = path[0]
                         start_vertex = self.vertex_[start_id]
                         plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]-0.2, 'S3', color='blue', fontsize=fontsize_dis, fontweight='bold')
-                    if idx == 7:
-                        start_id = path[0]
-                        start_vertex = self.vertex_[start_id]
-                        plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]-0.2, 'S4', color='blue', fontsize=fontsize_dis, fontweight='bold')
+                    # if idx == 7:
+                    #     start_id = path[0]
+                    #     start_vertex = self.vertex_[start_id]
+                    #     plt.text(start_vertex.pos_[1]+0.40, start_vertex.pos_[0]-0.2, 'S4', color='blue', fontsize=fontsize_dis, fontweight='bold')
 
 
                     # Mark End Cell
-                    if idx <= 3:
+                    if idx <= 2:
                         end_id = path[-1]
                         end_vertex = self.vertex_[end_id]
                         plt.text(end_vertex.pos_[1] - 0.1, end_vertex.pos_[0] + 0.25, 'F', color='green', fontsize=fontsize_dis, fontweight='bold')
@@ -324,7 +326,7 @@ class map_vis(object):
                     y = np.linspace(v1.pos_[0] + 0.5, v2.pos_[0] + 0.5, 100)
                     x = np.linspace(v1.pos_[1] + 0.5, v2.pos_[1] + 0.5, 100)
                     
-                    if idx <= 3:
+                    if idx <= 2:
                         plt.plot(x,y,'y-', linewidth=15)
                     else:
                         plt.plot(x+0.1,y+0.1,'b--', linewidth=15)

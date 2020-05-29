@@ -93,18 +93,18 @@ int main(int argc, char** argv )
     
     CollaborativeAlgorithm::SynchronizationAlgorithm(tasks_,vehicle_team_);
     std::cout << "Synchronization is achieved ." <<std::endl;
-    std::cout << "RESULT OF Syn " << std::endl;
-	for(int i = 0; i < vehicle_team_->auto_team_.size(); i++){
-		std::cout << "Vehicle " << i << std::endl;
-        std::cout << "Winners for tasks are " << std::endl;
-        std::cout << vehicle_team_->auto_team_[i]->vehicle_.cbba_z_ << std::endl;
-        std::cout << "Highest reward are " << std::endl;
-        std::cout << vehicle_team_->auto_team_[i]->vehicle_.cbba_y_ << std::endl;
-        std::cout << "Path info is " << std::endl;
-        for(auto &b: vehicle_team_->auto_team_[i]->vehicle_.task_path_)
-            std::cout << b << " ";
-        std::cout << std::endl;
-	}
+    // std::cout << "RESULT OF Syn " << std::endl;
+	// for(int i = 0; i < vehicle_team_->auto_team_.size(); i++){
+	// 	std::cout << "Vehicle " << i << std::endl;
+    //     std::cout << "Winners for tasks are " << std::endl;
+    //     std::cout << vehicle_team_->auto_team_[i]->vehicle_.cbba_z_ << std::endl;
+    //     std::cout << "Highest reward are " << std::endl;
+    //     std::cout << vehicle_team_->auto_team_[i]->vehicle_.cbba_y_ << std::endl;
+    //     std::cout << "Path info is " << std::endl;
+    //     for(auto &b: vehicle_team_->auto_team_[i]->vehicle_.task_path_)
+    //         std::cout << b << " ";
+    //     std::cout << std::endl;
+	// }
 
     std::map<int64_t,Path_t<SquareCell*>> path_ltl_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,TaskType::RESCUE);
     Path_t<SquareCell*> path_origin[4];

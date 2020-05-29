@@ -114,6 +114,8 @@ namespace librav{
             double waiting_t_;
             // Insert position threshold for dependent tasks
             int last_pos_dependent_;
+            int desired_idx_;
+            std::vector<int> closed_bundle_;
 
 
 
@@ -225,6 +227,7 @@ namespace librav{
         double PathLengthCalculationWithWaiting(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int> bundle, int init_pos, TasksList tasks);
 
         void SynchronizationAlgorithm(TasksSet tasks, std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team);
+        bool success_checker_dependent(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team, int check_idx);
 
     };
 }
