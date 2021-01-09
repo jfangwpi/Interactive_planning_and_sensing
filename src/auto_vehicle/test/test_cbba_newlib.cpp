@@ -1,5 +1,5 @@
 /*
- * test_reward.cpp
+ * test_cbba.cpp
  *
  *  Created on: July 25, 2019
  *      Author: jfang

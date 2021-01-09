@@ -45,7 +45,6 @@ namespace librav{
         public:
             TasksSet(std::vector<Task>& tasks);
             TasksSet(){};
-            // TasksSet(LTLFormula Global_LTL)
             ~TasksSet(){};
 
             std::vector<Task> tasks_;
