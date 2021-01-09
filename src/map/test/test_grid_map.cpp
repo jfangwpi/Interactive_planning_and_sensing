@@ -42,9 +42,5 @@ int main(int argc, char** argv )
 	imshow("Processed Image", vis_img);
 
 	waitKey(0);
-
-	/*** uncomment this line if you want to save result into an image ***/
-	//imwrite( "examples_result.jpg", vis_img);
-
 	return 0;
 }
