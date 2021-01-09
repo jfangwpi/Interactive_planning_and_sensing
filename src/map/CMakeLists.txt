@@ -40,21 +40,4 @@ target_link_libraries(test_grid_map vis map utility ${OpenCV_LIBS})
 add_executable(test_uncertain_grid_map test/test_uncertain_grid_map.cpp)
 target_link_libraries(test_uncertain_grid_map vis map)
 
-add_executable(test_ipas_cbba test/test_ipas_cbba.cpp)
-target_link_libraries(test_ipas_cbba vis map cbba ltl ${LCM_LIBRARIES})
-
-add_executable(test_ig_standard test/test_ig_standard.cpp)
-target_link_libraries(test_ig_standard vis map cbba ltl ${LCM_LIBRARIES})
-
-add_executable(test_data_analysis test/test_data_analysis.cpp)
-target_link_libraries(test_data_analysis vis map cbba ltl ${LCM_LIBRARIES})
-
-add_executable(test_ipas_simulation test/test_ipas_simulation.cpp)
-target_link_libraries(test_ipas_simulation vis map cbba ltl ${LCM_LIBRARIES} jsoncpp_lib)
-
-add_executable(test_random_map_availability test/test_random_map_availability.cpp)
-target_link_libraries(test_random_map_availability vis map cbba ltl ${LCM_LIBRARIES} ${OpenCV_LIBS})
-
-add_executable(test_threshold_opt test/test_threshold_opt.cpp)
-target_link_libraries(test_threshold_opt vis map cbba ltl ${LCM_LIBRARIES} ${OpenCV_LIBS})
 

@@ -10,8 +10,7 @@
 #include "graph/vertex.hpp"
 #include <lcm/lcm-cpp.hpp>
 #include "lcmtypes/uncertain_map_lcm_msgs.hpp"
-#include "cbba/cbba_agent.hpp"
-#include "cbba/cbba_task.hpp"
+
 
 namespace librav {
 
