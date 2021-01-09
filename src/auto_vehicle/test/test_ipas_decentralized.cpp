@@ -61,11 +61,8 @@ int main(int argc, char** argv )
     }
     bool flag_IPAS = false;
     int64_t ipas_tt = 0;
-    std::map<int64_t,Path_t<SquareCell*>> path_map_;
     std::map<int64_t,std::vector<double>> paths_entropy_; 
     std::vector<double> map_entropy_;
-    std::vector<int64_t> nz_ig_domain_;
-    std::map<int,std::vector<int64_t>> subregion_red;
     /*** IPAS Loop ***/
     while(flag_IPAS != true){
          //===============================================================================================//
@@ -121,6 +118,7 @@ int main(int argc, char** argv )
     //================================================================================================// 
     // Compute length of paths with full knowledge of environment
     int64_t act_path_length_ = 0;
+    std::map<int64_t,Path_t<SquareCell*>> path_map_;
     for(auto agent: vehicle_team_->auto_team_){
         if (agent->vehicle_.vehicle_type_ == TaskType::RESCUE){
             if(!agent->vehicle_.task_path_.empty()){
@@ -141,7 +139,6 @@ int main(int argc, char** argv )
     }
 
     int64_t opt_path_length_ = IPASMeasurement::GenerateTruePathsCost(vehicle_team_,tasks_,true_graph);
-
     std::cout << "The actual paths length is " << act_path_length_ << std::endl;
     std::cout << "The optimal path length is " << opt_path_length_ << std::endl;
 
