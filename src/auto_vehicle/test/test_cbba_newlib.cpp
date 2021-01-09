@@ -65,11 +65,13 @@ int main(int argc, char** argv )
     Path_t<SquareCell*> path_origin[4];
     for (int i = 0; i < 4; i++){
         path_origin[i] = path_ltl_[i];
+        //================================== DEBUG =================================//
         std::cout << "Path: " ;
         for (auto e: path_origin[i]){
             std::cout << e->id_<< ", ";
         }
         std::cout << std::endl;
+        //=========================================================================//
     }
 
     // Visualization
@@ -89,10 +91,5 @@ int main(int argc, char** argv )
 	imwrite("result_cbba.jpg",vis_img);
 
 	waitKey(0);
-
-
-  
- 
-
 	return 0;
 }

@@ -53,8 +53,9 @@ int main(int argc, char** argv )
     std::shared_ptr<SquareGrid> true_grid = GridGraph::CreateSquareGrid();
     std::shared_ptr<Graph_t<SquareCell *>> true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false, false);
     //===============================================================================================//
-    //============================================= CBBA ============================================//
+    //============================================= IPAS ============================================//
     //===============================================================================================//      
+    /*** Initialization ***/
     for(auto&agent: vehicle_team_->auto_team_){
         agent->vehicle_.SetLocalMap(init_grid);
     }
@@ -65,7 +66,11 @@ int main(int argc, char** argv )
     std::vector<double> map_entropy_;
     std::vector<int64_t> nz_ig_domain_;
     std::map<int,std::vector<int64_t>> subregion_red;
+    /*** IPAS Loop ***/
     while(flag_IPAS != true){
+         //===============================================================================================//
+        //============================================ Planning ==========================================//
+        //===============================================================================================// 
         ipas_tt ++;
         CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
         std::map<int64_t,Path_t<SquareCell*>> path_ltl_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,TaskType::RESCUE);
@@ -81,58 +86,40 @@ int main(int argc, char** argv )
         // Check the termination condition
         flag_IPAS = IPASMeasurement::IPASConvergence(vehicle_team_,path_ltl_);
         if(flag_IPAS == true){break;}
-        //===============================================================================================//
-        //============================================= IPAS ============================================//
-        //===============================================================================================// 
-        // Measurement
-        std::cout << "Iteration for IPAS " << ipas_tt <<std::endl;
+        //================================================================================================//
+        //============================================ Sensing ===========================================//
+        //================================================================================================// 
+        // Determine region of interest 
         IPASMeasurement::ComputeHotSpots(vehicle_team_,tasks_);
-        std::vector<int64_t> local_hspots;
-        for(auto agent: vehicle_team_->auto_team_){
-            for(auto lhspt: agent->vehicle_.hotspots_){
-                local_hspots.push_back(lhspt.first);
-            }
-            subregion_red[agent->vehicle_.idx_].push_back(vehicle_team_->auto_team_[agent->vehicle_.idx_]->vehicle_.nz_ig_zone_.size());
-        }
-        
-
+        // Determine sensors location
         IPASMeasurement::HotSpotsConsensus(vehicle_team_);
-
         // Easy for simulation
         IPASMeasurement::MergeHSpots(vehicle_team_);
-
-        nz_ig_domain_.push_back(vehicle_team_->auto_team_[0]->vehicle_.nz_ig_zone_.size());
-
+        // Execute route planning for sensors 
         TasksSet sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
         CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
-
-        std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,sensing_tasks_,TaskType::MEASURE);
-
+        // Update current position for sensors
         for(auto&agent:vehicle_team_->auto_team_){
             if(!agent->vehicle_.task_path_.empty()){
                 int64_t ss_task = sensing_tasks_.GetTaskPosFromID(agent->vehicle_.task_path_.back());
                 agent->vehicle_.pos_ = ss_task;
-                std::cout << "The initial pos for vehicle " << agent->vehicle_.idx_ << " is updated to " << agent->vehicle_.pos_ << std::endl;
             }
         }
 
-        // for(auto& agent: vehicle_team_->auto_team_){
-        std::map<int64_t,Path_t<SquareCell*>> map_path_ = {};
-        std::vector<int64_t> hspts;
-        for(auto cc: vehicle_team_->auto_team_[0]->vehicle_.hotspots_){
-            hspts.push_back(cc.first);
-        }
-        GraphVisLCM::TransferInfoLCM(vehicle_team_->auto_team_[0]->vehicle_.local_graph_,path_map_,hspts,local_hspots);
-    
-        // Update the map
+        //================================================================================================//
+        //=========================================== Update OGM =========================================//
+        //================================================================================================// 
         for(auto&agent:vehicle_team_->auto_team_){
             agent->vehicle_.UpdateLocalMap(true_graph,sensing_tasks_);
         }
-        std::cout << "Measurements are taken is updated." << std::endl;
-
+        std::cout << "Occupancy Grid Map is Updated." << std::endl;
         IPASMeasurement::MergeLocalMap(vehicle_team_);
     }
 
+    //=================================================================================================//
+    //=========================================== Analysis ============================================//
+    //================================================================================================// 
+    // Compute length of paths with full knowledge of environment
     int64_t act_path_length_ = 0;
     for(auto agent: vehicle_team_->auto_team_){
         if (agent->vehicle_.vehicle_type_ == TaskType::RESCUE){
@@ -143,7 +130,6 @@ int main(int argc, char** argv )
                 Path_t<SquareCell*> empty_path_ = {};
                 path_map_[agent->vehicle_.idx_] = empty_path_;
             }
-            std::cout << "Vehicle " << agent->vehicle_.idx_ << "'s path length is " << path_map_[agent->vehicle_.idx_].size()<< std::endl;
             act_path_length_ += path_map_[agent->vehicle_.idx_].size();
             double path_cost = 0.0;
             if(!path_map_[agent->vehicle_.idx_].empty()){
@@ -151,14 +137,7 @@ int main(int argc, char** argv )
                     path_cost += GridGraph::CalcHeuristicUncertain(path_map_[agent->vehicle_.idx_][kk],path_map_[agent->vehicle_.idx_][kk+1]);
                 }
             }
-            // std::cout << "Path cost for vehicle " << agent->vehicle_.idx_ << " is " << path_cost << std::endl;
         }
-        else if (agent->vehicle_.vehicle_type_ == TaskType::MEASURE){
-            Path_t<SquareCell*> empty_path_ = {};
-            Vertex_t<SquareCell*>* vrt = agent->vehicle_.local_graph_->GetVertexFromID(agent->vehicle_.pos_);
-            empty_path_.push_back(vrt->state_);
-            path_map_[agent->vehicle_.idx_] = empty_path_;
-        }   
     }
 
     int64_t opt_path_length_ = IPASMeasurement::GenerateTruePathsCost(vehicle_team_,tasks_,true_graph);
@@ -166,26 +145,8 @@ int main(int argc, char** argv )
     std::cout << "The actual paths length is " << act_path_length_ << std::endl;
     std::cout << "The optimal path length is " << opt_path_length_ << std::endl;
 
-    // for(auto& agent: vehicle_team_->auto_team_){
-    //     GraphVisLCM::TransferInfoLCM(vehicle_team_->auto_team_[0]->vehicle_.local_graph_,path_map_,{});
-    // }
-    GraphVisLCM::TransferInfoLCM(vehicle_team_->auto_team_[0]->vehicle_.local_graph_,path_map_,{});
-    std::cout << "The total number of iteration for IPAS is " << ipas_tt << std::endl;
-
     double decrease_rate = (map_entropy_[0] - map_entropy_.back())/map_entropy_[0]; 
 	std::cout << "The Uncertainty of map is decrease by " << decrease_rate << std::endl;
-	// Plot the information of entropy of map, dimension of subregion along iterations
-	GraphVisLCM::TransferDataTrendLCM(map_entropy_, nz_ig_domain_, paths_entropy_);
-
-
-    std::cout << "======================================" << std::endl;
-    for(auto aa: subregion_red){
-        std::cout << "Agent" << aa.first << std::endl;
-        for(auto bb: aa.second){
-            std::cout << bb << ", ";
-        }
-        std::cout << std::endl;
-    }
 
 	return 0;
 }
