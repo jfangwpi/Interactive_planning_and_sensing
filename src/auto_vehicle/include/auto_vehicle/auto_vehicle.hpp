@@ -217,15 +217,6 @@ namespace librav{
         double minimum_bid_finder(std::vector<double> winning_bids);
         // Check whether the convergence of synchronization algorithm is achieved
         bool success_checker_dependent(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team);
-        /*** Compute the waiting time required by vehicle ***/
-        double WaitingTimeCalculation(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<Agent>& agents, TasksList tasks);
-        int FindNumAppearance(std::vector<int> list, int target);
-        std::vector<int> FindWinners(std::vector<Agent> agents, int task_idx);
-        // Find the longest path for all dependent tasks
-        double MaximumRewardCalculation(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int> bundle, int init_pos, TasksList tasks);
-        // Compute certain length of path by considerring the waiting time
-        double PathLengthCalculationWithWaiting(std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int> bundle, int init_pos, TasksList tasks);
-
         void SynchronizationAlgorithm(TasksSet tasks, std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team);
         bool success_checker_dependent(TasksSet tasks,std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team, int check_idx);
 

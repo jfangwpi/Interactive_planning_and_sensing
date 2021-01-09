@@ -26,7 +26,6 @@ int main(int argc, char** argv )
     int64_t num_col = 4;
 	std::shared_ptr<SquareGrid> grid = GridGraph::CreateSquareGrid(num_row, num_col, 1);
 
-	// std::shared_ptr<SquareGrid> grid = GraphFromGrid::CreateSquareGrid();
 
 	/*** 2. Construct a graph from the square grid ***/
 	std::shared_ptr<Graph_t<SquareCell*>> graph = GridGraph::BuildGraphFromSquareGrid(grid, false, true);

@@ -35,17 +35,12 @@ namespace librav{
  *		<<		   column       >>
  */
     const double sensor_accuracy = 0.8;
-    // const double penalty = 200;
     static int64_t fig_idx_ = 1;
     const double entropy_threshold = 0.0243;
-    // const double entropy_threshold = 0.261511;
     const double cell_accurancy_ = 0.01;
 
     /*** Declear the square grid ***/
     class SquareGrid;
-
-    class Agent;
-    class TasksList;
 
     class AutoVehicle;
     class TasksSet;
@@ -140,9 +135,6 @@ namespace librav{
 
             /*** Generate random occupancy grid map ***/
             void SetRandomOccupanyMap(double obstacle_percentage);
-            std::vector<Agent> SetRandomAgents(int num_Agents, int num_Tasks_inde, int num_Tasks_de);
-            TasksList SetRandomTasks(int num_Tasks_inde, int num_Tasks_de);
-            bool OccupancyGridMapValidity(std::vector<Agent> agents, TasksList tasks, std::shared_ptr<Graph_t<SquareCell*>> graph);
             bool OccupancyGridMapValidity(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team, TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph);
             std::shared_ptr<SquareGrid> DuplicateSquareGrid();
 
@@ -185,8 +177,6 @@ namespace librav{
         // Compute the egde cost 
         double CalcHeuristic(SquareCell *node1, SquareCell *node2);    
         double CalcHeuristicUncertain(SquareCell *node1, SquareCell *node2); 
-        // Compute the path with given task assignment
-        Path_t<SquareCell*> PathComputationAStar(TasksList tasks, std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int> task_path_, int64_t init_pos_);
         // Compute the convergence flag
         std::pair<bool, std::vector<double>> ConvergenceCheck(std::map<int64_t, Path_t<SquareCell*>> paths, std::shared_ptr<Graph_t<SquareCell*>> graph, double threshold=entropy_threshold);
         // Select the sensors position
@@ -202,10 +192,6 @@ namespace librav{
         // Update the edge cost with given measurement
         void UpdateUncertainGraphEdgeCost(std::shared_ptr<Graph_t<SquareCell*>> graph);
         void UpdateUncertainGPGraphEdgeCost(std::shared_ptr<Graph_t<SquareCell*>> graph);
-        // IPAS
-        IGdata IPAS(std::vector<Agent> agents, TasksList tasks, int num_sensors, std::shared_ptr<SquareGrid> grid, std::shared_ptr<Graph_t<SquareCell*>> graph, std::shared_ptr<Graph_t<SquareCell*>> true_graph,double threshold=entropy_threshold);
-        // Standard Information Gain 
-        IGdata StandardIG(std::vector<Agent> agents, TasksList tasks, int num_sensors, std::shared_ptr<SquareGrid> grid, std::shared_ptr<Graph_t<SquareCell*>> graph, std::shared_ptr<Graph_t<SquareCell*>> true_graph,double threshold=entropy_threshold);
         // Write result to json file
         Json::Value WriteResultToJson(std::string method, int64_t caseT, int num_row, int num_col, int num_agents_, int num_tasks_inde_, int num_obstacles, int num_sensors, IGdata ipas_data);
     

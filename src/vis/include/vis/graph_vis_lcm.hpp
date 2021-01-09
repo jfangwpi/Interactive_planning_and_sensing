@@ -20,9 +20,6 @@ namespace GraphVisLCM
 	void TransferDataTrendLCM(std::vector<double> entropy, std::vector<int64_t> range, std::map<int64_t, std::vector<double>> entropy_paths);
 	void TransferGraphLCM(std::shared_ptr<Graph_t<SquareCell *>> graph,std::vector<int64_t> training_data);
 	void TransferBayesianInfoLCM(std::shared_ptr<Graph_t<SquareCell *>> graph, std::vector<int64_t> ROIs, std::vector<int64_t> nz_ig,std::vector<int64_t> tdata);
-
-	
-	void TransferRandomInfoLCM(std::shared_ptr<Graph_t<SquareCell *>> graph, std::map<int64_t, Path_t<SquareCell*>> paths, std::vector<int64_t> sensors_pos, TasksList tasks, std::vector<Agent> agents);
 };
 
 
