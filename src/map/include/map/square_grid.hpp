@@ -17,8 +17,6 @@
 #include "graph/graph.hpp"
 #include "json/json.h"
 #include "vehicle/auto_team.hpp"
-// #include "auto_vehicle/tasks.hpp"
-// #include "auto_vehicle/auto_vehicle.hpp"
 
 namespace librav{
     /*
@@ -99,8 +97,6 @@ namespace librav{
             SquareGrid(int32_t row_num, int32_t col_num, double cell_size = 0.1, int32_t pixel_per_meter = 100, int32_t default_label = 0);
             ~SquareGrid();
 
-        friend class SquareCell;
-
         public: 
             std::vector<std::vector<SquareCell *>> grid_cells_;
 
@@ -137,9 +133,6 @@ namespace librav{
             void SetRandomOccupanyMap(double obstacle_percentage);
             bool OccupancyGridMapValidity(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team, TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph);
             std::shared_ptr<SquareGrid> DuplicateSquareGrid();
-
-            TasksSet ConstructRandomLTLTasks(int64_t num_tasks);
-            std::shared_ptr<AutoTeam_t<AutoVehicle>> ConstructRandomAutoTeam(int64_t num_actors, int64_t num_sensors, int64_t num_tasks);
     
     };
     
